@@ -1,4 +1,26 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap");
+
+@font-face {
+  font-family: 'DaddyTimeMonoCustomSubset';
+  src: url('/assets/DaddyTimeMonoCustomSubset.woff2') format('woff2');
+  font-display: swap;
+}
+
+.font-daddy-time-custom-subset {
+  font-family: 'DaddyTimeMonoCustomSubset', monospace;
+}
+
+.ascii-art {
+  font-family: 'DaddyTimeMonoCustomSubset', monospace;
+  white-space: pre;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #253b30;
+  margin: 1.5em auto;
+  background: #e2eee9;
+}
+
+
 *,
 *:after,
 *:before {
