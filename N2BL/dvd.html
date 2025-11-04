@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body,
+      html {
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        background: #000;
+        color: #fff;
+        position: relative;
+      }
+
+      #curtains {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.1;
+        z-index: 1;
+      }
+
+      #dvd {
+        position: absolute;
+        width: 40vw;
+        z-index: 2;
+        max-width: 80%;
+        min-width: 40px;
+      }
+      @media (min-width: 600px) {
+        #dvd {
+          width: 23vw;
+        }
+      }
+      @media (min-width: 900px) {
+        #dvd {
+          width: 20vw;
+        }
+      }
+      @media (min-width: 1500px) {
+        #dvd {
+          width: 18vw;
+        }
+      }
+      @media (min-width: 1800px) {
+        #dvd {
+          width: 16vw;
+        }
+      }
+      @media (min-width: 2100px) {
+        #dvd {
+          width: 14vw;
+        }
+      }
+      @media (min-width: 2400px) {
+        #dvd {
+          width: 13vw;
+        }
+      }
+
+      #dvd svg {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <title>DVD Screen Saver - NibalAn</title>
+  </head>
+  <body>
+    <div id="curtains"></div>
+
+    <div id="dvd" style="color: blue">
+      <svg width="864" height="380" viewBox="0 0 864 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M74.2393 0.000713111H331.366C351.864 1.23126 372.384 -0.36629 392.861 0.99377C407.247 46.2914 424.786 90.5963 436.687 136.649C442.735 129.589 447.855 121.795 453.449 114.346C478.246 81.7654 504.922 50.6744 531.382 19.4323C536.544 13.4733 541.102 6.9528 546.998 1.68475C550.13 0.0871873 553.802 0.626754 557.194 0.36773C614.11 0.605231 671.004 0.389253 727.899 0.497242C761.098 0.734742 795.161 7.51425 823.673 25.1542C843.739 37.5042 860.198 57.2167 864 80.9883V100.291C858.924 127.517 841.558 150.9 819.828 167.417C790.927 189.785 755.892 203.15 720.209 209.864C689.277 215.78 657.677 213.664 626.4 214.053C602.726 213.794 579.009 214.614 555.357 213.6C566.978 164.07 578.836 114.583 590.479 65.0539C618.235 63.7799 646.056 64.6219 673.833 64.6004C666.597 98.6925 657.482 132.374 650.073 166.423C682.236 168.043 716.429 165.538 744.573 148.438C764.381 136.757 778.723 114.324 776.908 90.898C775.936 76.216 765.05 64.0389 752.241 57.799C732.758 48.0615 710.445 46.8525 689.04 47.133C662.363 47.0465 635.709 47.4785 609.033 47.3275C603.72 47.6299 597.175 46.6365 593.676 51.624C536.803 115.684 479.973 179.766 423.122 243.827C417.203 250.239 411.307 256.717 406.382 263.949C504.554 265.137 603.028 268.073 700.38 281.805C731.484 286.49 762.825 291.65 792.439 302.575C800.949 306.224 810.864 309.851 815.594 318.423C818.618 325.051 812.786 331.118 807.581 334.378C794.707 342.561 779.717 346.469 765.137 350.399C728.979 359.294 691.978 364.239 655.02 368.319C583.416 376.049 511.402 378.834 439.43 380H368.453C308.189 378.618 247.881 376.589 187.855 370.997C146.146 367.045 104.436 362.187 63.4823 353.27C47.7357 349.708 31.9464 345.757 17.2368 339.042C10.519 336.062 4.53593 331.593 0 325.807V318.056C9.43903 307.239 23.3928 302.294 36.72 298.149C64.9513 289.685 94.1327 284.849 123.271 280.79C216.627 268.181 310.932 264.985 405.022 264.165C381.737 195.916 356.746 128.25 333.159 60.0872C331.539 55.0997 329.163 50.3712 325.988 46.1826C330.373 67.5146 335.902 89.8827 329.638 111.474C321.279 138.074 300.802 159.017 278.23 174.433C236.564 202.242 185.869 214.721 136.08 214.074C98.6259 213.771 61.1497 214.57 23.7169 213.664C35.0787 164.026 47.1744 114.561 58.7953 64.9886C86.5945 64.0601 114.48 64.1896 142.301 64.9021C134.655 98.7997 126.166 132.503 118.714 166.423C155.477 168.215 196.711 164.695 225.18 138.722C238.205 126.544 246.197 108.559 244.814 90.6171C243.777 77.9001 235.483 66.6945 224.705 60.3035C207.273 49.7025 186.3 47.3705 166.298 47.1545C132.041 47.1761 97.8044 47.133 63.5684 47.2195C66.2035 31.2854 70.7395 15.7615 74.2389 -1.16821e-05L74.2393 0.000713111ZM353.095 305.944C340.265 307.304 327.413 309.226 315.036 312.983C310.112 314.688 304.733 316.502 301.363 320.712C298.08 326.434 305.468 329.845 309.679 331.767C327.089 338.482 345.924 340.209 364.392 341.785C394.308 343.361 424.548 343.188 454.14 337.963C464.249 335.869 475.071 334.163 483.581 327.945C487.469 325.937 486.432 320.086 482.911 318.273C473.667 312.141 462.37 310.37 451.656 308.319C419.105 303.202 385.884 302.965 353.095 305.944Z"
+          fill="currentColor"
+        />
+      </svg>
+    </div>
+
+    <script>
+      function logErr(e, fname) {
+        console.trace(e)
+        document.body.innerHTML += "<hr /> <p><b>Error at " + (fname ? "ROOT" : fname) + "</b></p><p>" + String(e) + "</p>";
+      }
+
+      try {
+        const tvElm = document.body;
+        const curtainsElm = document.querySelector("#curtains");
+        const logoElm = document.querySelector("#dvd");
+
+        let speed = 200; // px per second
+        let lastTime = +new Date();
+        let deltaTime = 0;
+        let movement = [1, 1]; // [x, y]
+        let tvBounds = tvElm.getBoundingClientRect();
+        let logoBounds = logoElm.getBoundingClientRect();
+        let x = 0;
+        let y = 0;
+        let nextX = 0;
+        let nextY = 0;
+
+        // const randomRange = (min, max) => min + (crypto.getRandomValues(new Uint32Array(1))[0] % (max - min + 1));
+        function randomRange(min = 0, max = 100, dec = 0) {
+          const mag = 10 ** dec;
+          return Math.floor((Math.random() * (max - min) + min) * mag) / mag;
+        }
+
+        const setRandomColor = () => {
+          try {
+            const red = randomRange(0, 8) * 32;
+            const green = randomRange(0, 8) * 32;
+            const blue = randomRange(0, 8) * 32;
+            const avg = red + blue + green / 3;
+
+            if (Math.abs(avg - red) < 80 && Math.abs(avg - green) < 80 && Math.abs(avg - blue) < 80) {
+              return setRandomColor();
+            }
+
+            const bgCol = `rgb(${red}, ${green}, ${blue})`;
+            // logoElm.style.color = red * 0.299 + green * 0.587 + blue * 0.114 <= 186 ? "#FFFFFF" : "#000000";
+            // logoElm.style.backgroundColor = bgCol;
+            logoElm.style.color = bgCol;
+            curtainsElm.style.backgroundColor = bgCol;
+          } catch (e) {
+            logErr(e, "setRandomColor");
+          }
+        };
+
+        const loop = () => {
+          try {
+            deltaTime = new Date() - lastTime;
+            // deltaTime = 1;
+            lastTime = +new Date();
+
+            tvBounds = tvElm.getBoundingClientRect();
+            logoBounds = logoElm.getBoundingClientRect();
+
+            x = logoBounds.left;
+            y = logoBounds.top;
+
+            if (logoBounds.left < tvBounds.left) {
+              movement[0] = 1;
+              x = tvBounds.left;
+              setRandomColor();
+            }
+            if (logoBounds.right > tvBounds.right) {
+              movement[0] = -1;
+              x = tvBounds.right - logoBounds.width;
+              setRandomColor();
+            }
+            if (logoBounds.top < tvBounds.top) {
+              movement[1] = 1;
+              y = tvBounds.top;
+              setRandomColor();
+            }
+            if (logoBounds.bottom > tvBounds.bottom) {
+              movement[1] = -1;
+              y = tvBounds.bottom - logoBounds.height;
+              setRandomColor();
+            }
+
+            nextX = x + ((speed * deltaTime) / 1000) * movement[0] - tvBounds.left;
+            nextY = y + ((speed * deltaTime) / 1000) * movement[1] - tvBounds.top;
+
+            logoElm.style.left = `${nextX}px`;
+            logoElm.style.top = `${nextY}px`;
+
+            requestAnimationFrame(loop);
+            // setTimeout(loop, 1000)
+          } catch (e) {
+            logErr(e, "LOOP TICK");
+          }
+        };
+
+        setRandomColor();
+        loop();
+      } catch (e) {
+        logErr(e, "ROOT");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+TO DO - nibalan portfolio
+
+- Save on GitHub
+- Use some bundler / framework
+- Recognize language and show appropriate text
+- Language selector
+- Flickering BG https://codepen.io/nibalAn/pen/MWRrPeY
+- Add images ?
+- Style the whole layout

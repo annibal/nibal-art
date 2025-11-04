@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N2BL - NibalAn</title>
+    <link rel="stylesheet" href="/assets/nibol.css" />
+    <script src="https://kit.fontawesome.com/40f0ec6d01.js" crossorigin="anonymous"></script>
+    <script src="/assets/printObject.js"></script>
+  </head>
+  <body>
+    <section class="section" id="n2bl-index">
+      <div class="welcome-block">
+        <h2>
+          <a href="/N2BL/index.html" id="go-back">
+            <i class="fa-solid fa-turn-up" style="transform:scaleX(-1)"></i>
+          </a>
+          <i class="fa-solid fa-star-of-life"></i> Help Tool</h2>
+        <hr />
+        <div id="help-tool-root" style="font-family: monospace">
+          <p>loading...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container" id="client-info">
+        <h3>Client Information</h3>
+        <hr />
+      </div>
+    </section>
+
+    <section class="section"></section>
+
+    <script>
+      const navKeys = [
+        "appCodeName",
+        "appName",
+        "appVersion",
+        "bluetooth",
+        "clipboard",
+        "connection",
+        "cookieEnabled",
+        "credentials",
+        "deprecatedRunAdAuctionEnforcesKAnonymity",
+        "deviceMemory",
+        "devicePosture",
+        "doNotTrack",
+        "geolocation",
+        "gpu",
+        "hardwareConcurrency",
+        "hid",
+        "ink",
+        "keyboard",
+        "language",
+        "languages",
+        "locks",
+        "login",
+        "managed",
+        "maxTouchPoints",
+        "mediaCapabilities",
+        "mediaDevices",
+        "mediaSession",
+        "mimeTypes",
+        "onLine",
+        "pdfViewerEnabled",
+        "permissions",
+        "platform",
+        "plugins",
+        "presentation",
+        "product",
+        "productSub",
+        "protectedAudience",
+        "scheduling",
+        "serial",
+        "serviceWorker",
+        "storage",
+        "storageBuckets",
+        "usb",
+        "userActivation",
+        "userAgent",
+        "userAgentData",
+        "vendor",
+        "vendorSub",
+        "virtualKeyboard",
+        "wakeLock",
+        "webdriver",
+        "webkitPersistentStorage",
+        "webkitTemporaryStorage",
+        "windowControlsOverlay",
+        "xr",
+      ];
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const rootElm = document.getElementById("help-tool-root");
+
+        rootElm.innerHTML = `<p>`;
+        rootElm.innerHTML += `<b>Window:</b><br/>`;
+        rootElm.innerHTML += `<span style="display:inline-block; padding-inline-start: 1em">`;
+        rootElm.innerHTML += `Outer - <b>W: </b>${window.outerWidth} - <b>H: </b>${window.outerHeight}`;
+        rootElm.innerHTML += `</span><br />`;
+        rootElm.innerHTML += `<span style="display:inline-block; padding-inline-start: 1em">`;
+        rootElm.innerHTML += `Inner - <b>W: </b>${window.innerWidth} - <b>H: </b>${window.innerHeight}`;
+        rootElm.innerHTML += `</span><br />`;
+        rootElm.innerHTML += `<span style="display:inline-block; padding-inline-start: 1em">`;
+        rootElm.innerHTML += `Device Pixel <b>Ratio</b>: ${window.devicePixelRatio.toFixed(1)}`;
+        rootElm.innerHTML += `</span>`;
+        rootElm.innerHTML += `</p>`;
+        rootElm.innerHTML += `<p>`;
+        rootElm.innerHTML += `<b>Screen:</b><br/>`;
+        rootElm.innerHTML += `<span style="display:inline-block; padding-inline-start: 1em">`;
+        rootElm.innerHTML += `Avail - <b>W: </b>${screen.availWidth} - <b>H: </b>${screen.availHeight}`;
+        rootElm.innerHTML += `</span><br />`;
+        rootElm.innerHTML += `<span style="display:inline-block; padding-inline-start: 1em">`;
+        rootElm.innerHTML += `Sizes - <b>W: </b>${screen.width} - <b>H: </b>${screen.height}`;
+        rootElm.innerHTML += `</span><br />`;
+        rootElm.innerHTML += `<span style="display:inline-block; padding-inline-start: 1em">`;
+        rootElm.innerHTML += `Depth <b>Color:</b>${screen.colorDepth} <b>Pixel:</b>${screen.pixelDepth}`;
+        rootElm.innerHTML += `</span>`;
+        rootElm.innerHTML += `</p>`;
+
+        const cInfo = document.getElementById("client-info");
+        const navObj = navKeys.reduce((prev, curr) => {
+          let value = navigator[curr];
+          if (JSON.stringify(value) === "{}") {
+            try {
+              value = Object.fromEntries(Object.entries(Object.getPrototypeOf(navigator[curr])));
+            } catch (e) {
+              value = navigator[curr].toString();
+            }
+          }
+          return { ...prev, [curr]: value };
+        }, {});
+
+        cInfo.innerHTML += printObject(navObj);
+
+        document.head.innerHTML += `<style>${printObjectCSS}</style>`;
+      });
+    </script>
+  </body>
+</html>

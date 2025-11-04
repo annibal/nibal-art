@@ -1,0 +1,241 @@
+/* https://www.smashingmagazine.com/2015/01/designing-for-print-with-css/ */
+
+/* margins:
+  - safety print margin, from top edge until first paint: 6mm
+  - extra space between small heading element top "y" and it's text content: 1mm
+  - heading character height: 1ch
+  - heading's bottom margin: 1.5mm
+  - heading's border, at bottom: 0.75mm
+  - space between heading's bottom border and anything from any page: 2.5mm
+  
+  total top margin: 6mm + (1mm + 1.5mm + 2.5mm) + 1ch + 0.75mm
+  = 11mm + 1ch + 0.75mm
+
+---
+
+rgb(65, 40, 25);  #412819   Richer warm black
+rgb(55, 35, 22);  #372316   Medium warm black
+rgb(45, 30, 20);  #2D1E14   Slightly warm black
+rgb(35, 31, 32);  #231f20   Plain Rich black
+rgb( 0,  0,  0);  #000000   Pure 100K black
+rgb(20, 30, 45);  #141E2D   Slightly cool black
+rgb(22, 35, 55);  #162337   Medium cool black
+rgb(25, 40, 65);  #192841   Richer cool black
+
+rgb(34, 34, 34);  #222222   Bleeding mix black - might be very much darker
+
+---
+
+Available width, inside: 18.975cm;
+1/12th: 1.58125cm
+
+
+
+*/
+
+@media print {
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+  }
+
+  body {
+    padding-top: 0.6ch;
+    counter-reset: sectionNum;
+  }
+  
+  section, article {
+    margin: 0;
+    padding: 0;
+    max-width: unset;
+  }
+
+  section {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  section#vestibulum-section {
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin-top: calc(1.1cm + 1ch + 0.75mm);
+    margin-right: 0.8cm;
+    margin-bottom: calc(1.1cm + 1ch + 0.75mm);
+    margin-left: 1cm;
+    
+    @top-left {
+      content: "Arthur Annibal Tavares\00A0-\00A0";
+      font: 500 12px / 1 var(--font-family), sans-serif;
+      color: #162337AA;
+      padding: 0.1cm 0cm 0.15cm 0.2cm;
+      margin: 0.6cm 0 0.25cm 0;
+      /* margin:  0 0 0; */
+      /* margin: 0.3ch 0 0.7ch 0; */
+      /* padding: 0.6ch 0.35cm 0.4ch 0.35cm; */
+      vertical-align: bottom;
+      /* border-bottom: 0.75mm solid #0000002F; */
+      border-bottom: 0.75mm solid #1928413F;
+      /* border-top: 0.75mm solid #0000003F; */
+      white-space: nowrap;
+      max-width: min-content;
+      width: min-content;
+    }
+    @top-right {
+      content: "Desenvolvedor Front End";
+      font: 400 12px / 1 var(--font-family), sans-serif;
+      color: #372316AA;
+      padding: 0.1cm 0.2cm 0.15cm 0cm;
+      margin: 0.6cm 0 0.25cm 0;
+      text-align: left;
+      vertical-align: bottom;
+      /* border-bottom: 0.75mm solid #0000003F; */
+      border-bottom: 0.75mm solid #1928413F;
+      width: auto;
+    }
+    
+    /* @bottom-left {
+      content: " ";
+      width: auto;
+    } */
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font: 400 12px / 1 var(--font-family), sans-serif;
+      color: #412819AA;
+      padding: 0.15cm 0.2cm 0.1cm 4cm;
+      margin: 0.25cm 0 0.6cm 0;
+      vertical-align: top;
+      border-top: 0.75mm solid #4128193F;
+      /* max-width: min-content;
+      width: min-content;
+      white-space: nowrap; */
+    }
+  }
+  
+  /* .page-break {
+    page-break-before: always;
+  } */
+  h1, h2, h3, h4, h5 {
+    page-break-after: avoid;
+    page-break-inside:avoid;
+  }
+  
+  h1 + p, h2 + p, h3 + p {
+    page-break-before: avoid;
+  }
+  
+  table, figure, p {
+    page-break-inside: avoid;
+  }
+
+  h2 {
+    margin-top: 2em;
+    display: inline-block;
+  }
+  h2#infos {
+    margin-top: 0em;
+  }
+
+  /* h1 {
+    counter-reset: sectionNum;
+  }
+  h2.content-section-header::before {
+    counter-increment: sectionNum;
+    content: counter(sectionNum) ". ";
+  } */
+  
+  #first-heading {
+    font-size: 2.1rem;
+    margin-top: 0rem;
+    margin-bottom: 1rem;
+    /* width: 110mm; */
+    /* flex: 1 1 auto; */
+    padding-bottom: .6em;
+    border-bottom: 0.2mm solid #141E2D3F;
+    padding-inline-end: 1.5em;
+    padding-inline-start: 0.5rem;
+  }
+
+  #first-heading small {
+    display: block;
+    opacity: .7;
+    font-size: 0.62em;
+    /* margin-bottom: 0.5em; */
+    margin-top: 0.32em;
+  }
+
+  #toc {
+    /* width: 79mm; */
+    margin-inline-start: 0.5rem;
+    /* margin-top: 0.5rem; */
+    margin-bottom: 0rem;
+  }
+  #toc ol {
+    font-size: 0.85rem;
+    line-height: 1.1;
+    z-index: 1;
+    /* list-style-type: none; */
+    list-style-position: inside;
+  }
+  #toc ol li a {
+    margin-bottom: 0ch;
+    padding: 1px 1em 1px 0;
+    position: relative;
+    display: inline-block;
+    line-height: inherit;
+  }
+  /* #toc ol li a::before {
+    content: " (1)";
+    content: " (" target-counter(attr(href url), page) ")";
+  } */
+
+  #first-block {
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    align-items: stretch;
+    padding: 0 0 1px 0;
+  }
+
+  @page:first {
+    margin-top: 1cm;
+
+    @top-left {
+      content: " ";
+      border-bottom-color: transparent;
+      margin: 0;
+      padding: 0;
+      font-size: 0.1px;
+    }
+    @top-right {
+      content: " ";
+      border-bottom-color: transparent;
+      margin: 0;
+      padding: 0;
+      font-size: 0.1px;
+    }
+  }
+
+  footer.the-curtain-call {
+    background: none;
+    border: 1mm solid #b76e4233;
+    margin: 3rem 5rem 0;
+    padding: 0.5rem 1rem 2rem;
+    color: #412819;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+}
+
+@media print and (color) {
+  * {
+     -webkit-print-color-adjust: exact;
+     print-color-adjust: exact;
+  }
+}
