@@ -143,9 +143,7 @@ async function probeScheme(uri, timeout = 1200) {
   });
 }
 
-async function tryGetApps() {
-  let listed = false;
-  
+async function tryGetApps() {  
   if ('getInstalledRelatedApps' in navigator) {
     try {
       //{platform, id, url}
@@ -160,17 +158,14 @@ async function tryGetApps() {
           `   PLATFORM: ${app.platform}`,
         );
       });
-      listed = true;
     } catch (e) {
       log("Error trying to get 'getInstalledRelatedApps':", e);
     }
   } else {
     log("'getInstalledRelatedApps' is not available in this browser.");
   }
-  
-  if (listed) return;
-  
-  log("Will try to identify installed apps via janky trick.");
+    
+  log("------","","Will try to identify installed apps via janky trick.");
 
   const prbApps = [
     {name:'WhatsApp', probe: 'whatsapp://send?text=hi', intent: 'intent://send/#Intent;package=com.whatsapp;scheme=whatsapp;end'},
