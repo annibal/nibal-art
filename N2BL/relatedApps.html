@@ -144,6 +144,85 @@ async function probeScheme(uri, timeout = 1200) {
 }
 
 async function tryGetApps() {  
+
+  try {
+    log(navigator.deviceMemory ? `💾 Device Memory: ${navigator.deviceMemory} GB` : "💾 Device Memory: Not available");
+  } catch (e) {
+    log("Failed to get Device Memory:", e);
+  }
+  try {
+    log(navigator.hardwareConcurrency ? `🧇 CPU Cores: ${navigator.hardwareConcurrency} GB` : "🧇 CPU Cores: Not available");
+  } catch (e) {
+    log("Failed to get CPU Cores:", e);
+  }
+  try {
+    log(`☕ Java Support: ${navigator.javaEnabled() ? `Enabled` : `Disabled`}`);
+  } catch (e) {
+    log("Failed to get Java Support:", e);
+  }
+  try {
+    log(`🍪 Cookie Support: ${navigator.cookieEnabled ? `Enabled` : `Disabled`}`);
+  } catch (e) {
+    log("Failed to get Cookie Support:", e);
+  }
+  try {
+    const ls = await navigator.keyboard.getLayoutMap();
+    log(`⌨️ Keyboard Layout Size: ${ls.size}`);
+  } catch (e) {
+    log("Failed to get Keyboard Layout Size:", e);
+  }
+  try {
+    log(`👆 Max Touches: ${navigator.maxTouchPoints}`);
+  } catch (e) {
+    log("Failed to get Max Touch Points:", e);
+  }
+  try {
+    log(`⚙️ Product: ${navigator.product} v${navigator.productSub}`);
+  } catch (e) {
+    log("Failed to get Product and ProductSub", e);
+  }
+  try {
+    log(`⚙️ Vendor: ${navigator.vendor} v${navigator.vendorSub}`);
+  } catch (e) {
+    log("Failed to get Vendor and VendorSub", e);
+  }
+
+
+  try {
+    const estimate = await navigator.storage.estimate();
+    `${}MB`
+    log(`🗄️ Storage Estimate: ${(estimate.quota / 1024 / 1024).toFixed(2)}MB - ${(estimate.usage / estimate.quota) *100).toFixed(2)}%`);
+  } catch (e) {
+    log("Failed to get Storage Estimate:", e);
+  }
+
+  try {
+    const con = navigator.connection
+    log(`🛜 Connection: ${con.saveData && "[Data Saver ON] "}${con.effectiveType}, ⬇️ ${con.downlink}, RTT ${con.rtt}`);
+  } catch (e) {
+    log("Failed to get Connection Data:", e);
+  }
+
+  try {
+    const battery = await navigator.getBattery();
+    log(
+      `🔋 Battery Info: ${battery.charging ? "Charging" : "Discharging"} at level ${battery.level}`,
+      `chargingTime: ${chargingTime}, dischargingTime: ${dischargingTime}`
+    )
+  } catch (e) {
+    log("Failed to getBattery:", e);
+  }
+
+  try {
+    const uadata = navigator.userAgentData;
+    log(`🛠 User Agent Data: ${uadata.ismobile ? "Mobile" : "Desktop"}, ${uadata.platform}`);
+    uadata.brands.forEach(brand => {
+      log(` - ${brand.brand} v${brand.version}`);
+    });
+  } catch (e) {
+    log("Failed to get User Agent Data:", e);
+  }
+
   if ('getInstalledRelatedApps' in navigator) {
     try {
       //{platform, id, url}
