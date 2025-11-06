@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N2BL - Get Related Apps</title>
+    <link rel="stylesheet" href="/assets/nibol.css" />
+    <script src="https://kit.fontawesome.com/40f0ec6d01.js" crossorigin="anonymous"></script>
+    <script src="/assets/printObject.js"></script>
+    
+    <script
+      src="https://s3.traki.io/traki.js"
+      api_key="tk_MHJWQkiy_01k968nhKaQkJY9819N9hG970Y"
+      campaign_id="nibols001"
+      base_url=""
+    ></script>
+
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono&display=swap');
+
+:root {
+  --max-width: 768px;
+  --fg-color: #cdffe6;
+  --bg-color: #001209;
+}
+
+#logs {
+  font-family: "DM Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
+  font-optical-sizing: auto;
+  font-feature-settings: "ss01" 0,"ss02" 1, "ss03" 1, "ss04" 0, "ss05" 1;
+  position: relative;
+  padding: 1rem;
+  padding-inline-start: 1.2rem;
+  font-size: 14px;
+  color: var(--fg-color);
+  background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  height: 75vh;
+  overflow: auto;
+  resize: vertical;
+  min-height: 150px;
+  max-height: 85vh;
+}
+
+#logs > p {
+  margin: 0;
+  display: inline-block;
+  text-wrap-style: pretty;
+  white-space-collapse: preserve;
+  position: relative;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 30%, transparent 80%);
+  padding: 0.4rem 0.5rem;
+  box-sizing: border-box;
+}
+
+#logs > p:before {
+  content: "▶";
+  position: absolute;
+  left: -1.3rem;
+}
+
+#n2bl-index {
+  min-height: 100px;
+  padding-bottom: 0;
+}
+#n2bl-index p {
+  margin-bottom: 0;
+}
+    </style>
+  </head>
+  <body>
+    <section class="section" id="n2bl-index">
+      <div class="welcome-block">
+        <h2>
+          <a href="/N2BL/index.html" id="go-back">
+            <i class="fa-solid fa-turn-up" style="transform:scaleX(-1)"></i>
+          </a>
+          <i class="fa-solid fa-star-of-life"></i> Related Apps
+        </h2>
+        <p>An web experiment to see if a browser page can list installed apps on the user's device.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div id="logs"></div>
+      </div>
+    </section>
+
+    <section class="section"></section>
+
+    <script>
+console.clear();
+
+const $logs = document.getElementById("logs");
+
+function log() {
+  const content = Array.from(arguments).join("\n");
+  console.log(content);
+  $logs.appendChild((() => {
+    const p = document.createElement("p");
+    p.innerText = content;
+    return p;
+  })());
+}
+
+// usage:
+// probeScheme('whatsapp://send?text=hi').then(installed => console.log(installed));
+async function probeScheme(uri, timeout = 1200) {
+  return new Promise(resolve => {
+    const t0 = Date.now();
+    let done = false;
+    const onVis = () => {
+      if (document.hidden) finish(true);
+    };
+    function finish(found) {
+      if (done) return;
+      done = true;
+      cleanup();
+      resolve(found);
+    }
+    const timer = setTimeout(()=> {
+      // if page didn't lose visibility, assume app not installed
+      finish(false);
+    }, timeout);
+    function cleanup() {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVis);
+    }
+    document.addEventListener('visibilitychange', onVis);
+    // attempt to open:
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    try { iframe.src = uri; } catch(e) { finish(false); }
+    // cleanup iframe in timeout or on finish
+    setTimeout(() => { iframe.remove(); }, timeout + 500);
+  });
+}
+
+async function tryGetApps() {
+  let listed = false;
+  
+  if ('getInstalledRelatedApps' in navigator) {
+    try {
+      //{platform, id, url}
+      const apps = await navigator.getInstalledRelatedApps();
+      log("Got apps via getInstalledRelatedApps successfully!");
+      log(`Found ${apps.length} installed related apps:`);
+      apps.forEach((app, idx) => {
+        const didx = String(idx).padStart(3, "0");
+        log(
+          `- ["${didx}"]  ID: ${app.id}`,
+          `        URL: ${app.url}`,
+          `   PLATFORM: ${app.platform}`,
+        );
+      });
+      listed = true;
+    } catch (e) {
+      log("Error trying to get 'getInstalledRelatedApps':", e);
+    }
+  } else {
+    log("'getInstalledRelatedApps' is not available in this browser.");
+  }
+  
+  if (listed) return;
+  
+  log("Will try to identify installed apps via janky trick.");
+
+  const prbApps = [
+    {name:'WhatsApp', probe: 'whatsapp://send?text=hi', intent: 'intent://send/#Intent;package=com.whatsapp;scheme=whatsapp;end'},
+    {name:'Telegram', probe: 'tg://msg?text=hi', intent: 'intent://msg/#Intent;package=org.telegram.messenger;scheme=tg;end'},
+    // add others
+  ];
+
+  prbApps.forEach(async (app) => {
+    const installed = await probeScheme(app.probe);
+    log(
+      `${app.name} is ${installed ? "" : "NOT "}installed`,
+    );
+  });
+
+  log("Done probing for related apps.");
+}
+
+tryGetApps();
+    </script>
+  </body>
+</html>
