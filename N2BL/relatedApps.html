@@ -186,6 +186,18 @@ async function tryGetApps() {
   } catch (e) {
     log("Failed to get Vendor and VendorSub", e);
   }
+  try {
+    const dnt = navigator.doNotTrack();
+    if (dnt === "1" || dnt === "yes" || dnt === 1) {
+      log(`⚙️ DNT: 1, Do Not Track`);
+    } else if (dnt === "0" || dnt === "no" || dnt === 0) {
+      log(`⚙️ DNT: 0, Yes Track`);
+    } else {
+      log(`⚙️ DNT: ?, Unspecified`);
+    }
+  } catch (e) {
+    log("Failed to get Do Not Track value", e);
+  }
 
 
   try {
