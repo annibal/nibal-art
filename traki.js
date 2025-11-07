@@ -183,13 +183,18 @@ const POSSIBLE_NAMES = {
 };
 function selectFirstInputSource(param) {
     const config = POSSIBLE_NAMES[param];
-    const value = config.availableSourcesSorted.find((sourceKey) => {
+    let value = null;
+    for (let sourceKey of config.availableSourcesSorted) {
         const source = INPUT_SOURCES[sourceKey];
-        return config.possibleWrongNames.find((paramName) => {
-            return source.getParamValue(paramName);
-        });
-    });
-    return value ? String(value) : null;
+        for (let paramName of config.possibleWrongNames) {
+            const r = source.getParamValue(paramName);
+            console.debug(`Source:${sourceKey} Param:${paramName} Val:${r}`);
+            if (r) {
+                value = String(r);
+            }
+        }
+    }
+    return value;
 }
 function getAllInputSources() {
     return Object.keys(POSSIBLE_NAMES).reduce((all, curr) => ({
@@ -216,7 +221,6 @@ class _ParamSource {
     TRACE_ID = POSSIBLE_NAMES.TRACE_ID.defaultValue;
     TTY_LEVEL = POSSIBLE_NAMES.TTY_LEVEL.defaultValue;
     ttylvl = 0;
-    couldReadScriptElm = false;
     constructor() { }
     update() {
         Object.entries(getAllInputSources()).forEach(([key, value]) => {
@@ -694,9 +698,15 @@ async function createTrace(config) {
 async function traki() {
     inputSourceSelect.update();
     let config = inputSourceSelect.asObject();
+    trkiout.debug('ParamSource 1:', config);
     await sleep(600);
     inputSourceSelect.update();
     config = inputSourceSelect.asObject();
+    trkiout.debug('ParamSource 2:', config);
+    await sleep(600);
+    inputSourceSelect.update();
+    config = inputSourceSelect.asObject();
+    trkiout.debug('ParamSource 3:', config);
     if (!config.campaignId) {
         trkiout.error("missing CampaignID, skipping event tracking");
         return;
