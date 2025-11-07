@@ -204,9 +204,7 @@ class _ParamSource {
     TRACE_ID = POSSIBLE_NAMES.TRACE_ID.defaultValue;
     TTY_LEVEL = POSSIBLE_NAMES.TTY_LEVEL.defaultValue;
     ttylvl = 0;
-    constructor() {
-        this.update();
-    }
+    constructor() { }
     update() {
         Object.entries(getAllInputSources()).forEach(([key, value]) => {
             this[key] = value;
@@ -627,7 +625,7 @@ async function createTrace(config) {
         'Authorization': `Bearer ${config.apiKey}`,
     };
     try {
-        const response = await fetch('http://localhost:8787/v1/traces', {
+        const response = await fetch(getTheURL("traces"), {
             method: 'POST',
             headers,
             body: JSON.stringify(tracePayload),
@@ -658,6 +656,7 @@ async function createTrace(config) {
  * Main Traki tracking initialization
  */
 async function traki() {
+    inputSourceSelect.update();
     let config = inputSourceSelect.asObject();
     if (!config.campaignId) {
         trkiout.error("missing CampaignID, skipping event tracking");
