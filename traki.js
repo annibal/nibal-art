@@ -84,7 +84,15 @@ const INPUT_SOURCES = {
     },
     THIS_SCRIPT: {
         getParamValue: (() => {
-            const dad = getCurrentScript();
+            let dad;
+            try {
+                dad = getCurrentScript();
+            }
+            catch (err) {
+                return function getParamValue(paramName) {
+                    return undefined;
+                };
+            }
             if (!dad) {
                 return function getParamValue(paramName) {
                     return null;
@@ -197,6 +205,10 @@ const TTY_LEVELS = {
     debug: 5, // verbose: 5,
     trace: 6,
 };
+const scriptElmTiedParams = Object.entries(POSSIBLE_NAMES)
+    .map(([key, value]) => ({ ...value, keyName: key }))
+    .filter((aggVal) => aggVal.availableSourcesSorted.includes("THIS_SCRIPT"))
+    .map((aggVal) => aggVal.keyName);
 class _ParamSource {
     API_KEY = "";
     CAMPAIGN_ID = "";
@@ -204,6 +216,7 @@ class _ParamSource {
     TRACE_ID = POSSIBLE_NAMES.TRACE_ID.defaultValue;
     TTY_LEVEL = POSSIBLE_NAMES.TTY_LEVEL.defaultValue;
     ttylvl = 0;
+    couldReadScriptElm = false;
     constructor() { }
     update() {
         Object.entries(getAllInputSources()).forEach(([key, value]) => {
@@ -216,6 +229,15 @@ class _ParamSource {
             this.ttylvl = TTY_LEVELS[this.TTY_LEVEL.toLowerCase()] || 0;
         }
     }
+    updateParamsThatMightNotHaveReadFromScriptElm() {
+        scriptElmTiedParams.filter(keyName => this[keyName] === undefined).forEach(keyName => this.refresh(keyName));
+    }
+    updateScriptTiedParamIfNeeded(paramName) {
+        const tiedToScriptElm = POSSIBLE_NAMES[paramName].availableSourcesSorted.includes("THIS_SCRIPT");
+        if (tiedToScriptElm) {
+            this.refresh(paramName);
+        }
+    }
     refresh(paramName) {
         let paramValue = selectFirstInputSource(paramName);
         //@ts-ignore
@@ -226,6 +248,7 @@ class _ParamSource {
         this[paramName] = paramValue;
     }
     asObject() {
+        this.updateParamsThatMightNotHaveReadFromScriptElm();
         return {
             apiKey: this.getApiKey(),
             campaignId: this.getCampaignId(),
@@ -234,11 +257,26 @@ class _ParamSource {
             ttyLevel: this.getTtyLevel(),
         };
     }
-    getApiKey() { return this.API_KEY; }
-    getCampaignId() { return this.CAMPAIGN_ID; }
-    getBaseUrl() { return this.BASE_URL; }
-    getTraceId() { return this.TRACE_ID; }
-    getTtyLevel() { return this.TTY_LEVEL; }
+    getApiKey() {
+        this.updateScriptTiedParamIfNeeded("API_KEY");
+        return this.API_KEY;
+    }
+    getCampaignId() {
+        this.updateScriptTiedParamIfNeeded("CAMPAIGN_ID");
+        return this.CAMPAIGN_ID;
+    }
+    getBaseUrl() {
+        this.updateScriptTiedParamIfNeeded("BASE_URL");
+        return this.BASE_URL;
+    }
+    getTraceId() {
+        this.updateScriptTiedParamIfNeeded("TRACE_ID");
+        return this.TRACE_ID;
+    }
+    getTtyLevel() {
+        this.updateScriptTiedParamIfNeeded("TTY_LEVEL");
+        return this.TTY_LEVEL;
+    }
     // console levels
     getCanTTYerror() { return this.ttylvl <= TTY_LEVELS.error; }
     getCanTTYwarn() { return this.ttylvl <= TTY_LEVELS.warn; }
