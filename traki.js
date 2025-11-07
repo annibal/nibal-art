@@ -478,6 +478,7 @@ function onLoad(fn) {
         return fn();
     }
     window.addEventListener("load", fn);
+    window.addEventListener("DOMContentLoaded", fn);
 }
 /**
  * Checks if the document is already loaded
@@ -825,7 +826,7 @@ async function sendEvent(eventData, options = {}) {
     }
     return response;
 }
-traki();
+requestAnimationFrame(traki);
 
 /******/ })()
 ;
