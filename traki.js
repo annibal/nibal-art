@@ -51,7 +51,108 @@ const stores = asConst()({
     session: createStore(sessionStorage),
 });
 
+;// ./src/types/validators.ts
+/**
+ * Runtime Validation Helpers
+ *
+ * Lightweight client-side validation utilities for API types.
+ * These provide basic validation without requiring heavy dependencies like Zod.
+ */
+
+/**
+ * Validates if a string is a valid UUID v4
+ */
+function isValidUUID(value) {
+    return typeof value === 'string' && constants_UUID_V4_REGEX.test(value);
+}
+/**
+ * Validates if a string is a valid ISO 8601 date
+ */
+function isValidISODate(value) {
+    if (typeof value !== 'string')
+        return false;
+    const date = new Date(value);
+    return !isNaN(date.getTime()) && date.toISOString().startsWith(value.slice(0, 10));
+}
+/**
+ * Generates a UUID v4 (client-side)
+ * Note: Uses crypto.randomUUID if available, falls back to Math.random
+ */
+function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
+/**
+ * Validation error class
+ */
+class ValidationError extends Error {
+    field;
+    value;
+    constructor(message, field, value) {
+        super(message);
+        this.field = field;
+        this.value = value;
+        this.name = 'ValidationError';
+    }
+}
+/**
+ * Validates required fields are present and non-empty
+ */
+function validateRequired(value, field) {
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
+        throw new ValidationError(`${field} is required`, field, value);
+    }
+}
+/**
+ * Validates UUID fields
+ */
+function validateUUID(value, field) {
+    if (!isValidUUID(value)) {
+        throw new ValidationError(`${field} must be a valid UUID v4`, field, value);
+    }
+}
+/**
+ * Validates optional UUID fields (allows undefined/null)
+ */
+function validateOptionalUUID(value, field) {
+    if (value !== undefined && value !== null && !isValidUUID(value)) {
+        throw new ValidationError(`${field} must be a valid UUID v4 or undefined`, field, value);
+    }
+}
+/**
+ * Validates ISO date fields
+ */
+function validateISODate(value, field) {
+    if (!isValidISODate(value)) {
+        throw new ValidationError(`${field} must be a valid ISO 8601 date`, field, value);
+    }
+}
+/**
+ * Validates optional ISO date fields
+ */
+function validateOptionalISODate(value, field) {
+    if (value !== undefined && value !== null && !isValidISODate(value)) {
+        throw new ValidationError(`${field} must be a valid ISO 8601 date or undefined`, field, value);
+    }
+}
+function safeTry(fn, $default) {
+    try {
+        return fn();
+    }
+    catch {
+        return $default;
+    }
+}
+
 ;// ./src/functions/inputSourceSelect.ts
+
 
 
 
@@ -101,7 +202,7 @@ const INPUT_SOURCES = {
                         }
                         catch (err3) {
                             try {
-                                console.debug({ err1, err2, err3 });
+                                internalDebug({ err1, err2, err3 });
                             }
                             catch (err4) { }
                         }
@@ -198,7 +299,12 @@ const POSSIBLE_NAMES = {
         ],
     },
 };
-function selectFirstInputSource(param) {
+function selectFirstInputSource(param, currentValue = null) {
+    try {
+        validateRequired(currentValue, param);
+        return currentValue;
+    }
+    catch (e) { }
     const config = POSSIBLE_NAMES[param];
     let value = null;
     for (let sourceKey of config.availableSourcesSorted) {
@@ -206,13 +312,13 @@ function selectFirstInputSource(param) {
         for (let paramName of config.possibleWrongNames) {
             const r = source.getParamValue(paramName);
             if (r) {
-                console.debug(`Param:${paramName} was found in Source:${sourceKey} with value:${r}`);
+                internalDebug(`Param:${paramName} was found in Source:${sourceKey} with value:${r}`);
                 value = String(r);
                 return value;
             }
         }
     }
-    console.debug(`Param:${param} was not found.`);
+    internalDebug(`Param:${param} was not found.`);
     return null;
 }
 function getAllInputSources() {
@@ -261,8 +367,8 @@ class _ParamSource {
             this.refresh(paramName);
         }
     }
-    refresh(paramName) {
-        let paramValue = selectFirstInputSource(paramName);
+    refresh(paramName, force = false) {
+        let paramValue = selectFirstInputSource(paramName, force ? undefined : this[paramName]);
         //@ts-ignore
         if (!paramValue)
             paramValue = POSSIBLE_NAMES[paramName].defaultValue;
@@ -436,8 +542,12 @@ function getTheURL(path, baseURL = "", version = "v1") {
     }
     return ([base, version, path].join("/") + "/").replace(/(?<!https?:\/?)\/+/gi, "/");
 }
+function internalDebug(...args) {
+    // console.debug(...arguments);
+}
 
 ;// ./src/functions/log.ts
+
 
 // TODO: unused
 class TextManipulator {
@@ -481,30 +591,30 @@ const trkiout = (() => {
             return safeVoid;
         for (let method of methods) {
             if (!(typeof console[method] === "function")) {
-                console.debug(`trkiout → ${console[method]} is not a function`);
+                internalDebug(`trkiout → ${console[method]} is not a function`);
                 return safeVoid;
             }
             ;
         }
     }
     catch (e1) {
-        console.debug(`trkiout → failed E1:`, e1);
+        internalDebug(`trkiout → failed E1:`, e1);
         try {
             if (inputSourceSelect.getCanTTY("error")) {
                 console.error("[Traki] Failed to verify console compatibility: ", e1);
             }
         }
         catch (e2) {
-            console.debug(`trkiout → can not console error at all`, e2);
+            internalDebug(`trkiout → can not console error at all`, e2);
             // can't console.error at all
         }
         return safeVoid;
     }
-    console.debug(`trkiout → Passed Safeguard 1`);
+    internalDebug(`trkiout → Passed Safeguard 1`);
     // console wrapper
     return new Proxy({}, {
         get(_, prop) {
-            console.debug(`trkiout.${prop} → ${typeof prop === "string"}, ${methods.includes(prop)}, ${!!console[prop]}, ${inputSourceSelect.getCanTTY(prop)}`);
+            internalDebug(`trkiout.${prop} → ${typeof prop === "string"}, ${methods.includes(prop)}, ${!!console[prop]}, ${inputSourceSelect.getCanTTY(prop)}`);
             if (typeof prop !== "string")
                 return identity;
             // trkiout.[error|warn|log|info|debug|trace] only
@@ -519,7 +629,7 @@ const trkiout = (() => {
             if (!canLog)
                 return identity;
             // yes i can log that.
-            console.debug(`trkiout → Passed Safeguard 2`);
+            internalDebug(`trkiout → Passed Safeguard 2`);
             return (...args) => {
                 // let me prefix some stuff:
                 if (typeof args[0] === "string") {
@@ -549,106 +659,6 @@ function onLoad(fn) {
  */
 function isDocumentLoaded() {
     return document.readyState === 'complete';
-}
-
-;// ./src/types/validators.ts
-/**
- * Runtime Validation Helpers
- *
- * Lightweight client-side validation utilities for API types.
- * These provide basic validation without requiring heavy dependencies like Zod.
- */
-
-/**
- * Validates if a string is a valid UUID v4
- */
-function isValidUUID(value) {
-    return typeof value === 'string' && constants_UUID_V4_REGEX.test(value);
-}
-/**
- * Validates if a string is a valid ISO 8601 date
- */
-function isValidISODate(value) {
-    if (typeof value !== 'string')
-        return false;
-    const date = new Date(value);
-    return !isNaN(date.getTime()) && date.toISOString().startsWith(value.slice(0, 10));
-}
-/**
- * Generates a UUID v4 (client-side)
- * Note: Uses crypto.randomUUID if available, falls back to Math.random
- */
-function generateUUID() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-    }
-    // Fallback for older browsers
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
-}
-/**
- * Validation error class
- */
-class ValidationError extends Error {
-    field;
-    value;
-    constructor(message, field, value) {
-        super(message);
-        this.field = field;
-        this.value = value;
-        this.name = 'ValidationError';
-    }
-}
-/**
- * Validates required fields are present and non-empty
- */
-function validateRequired(value, field) {
-    if (!value || (typeof value === 'string' && value.trim() === '')) {
-        throw new ValidationError(`${field} is required`, field, value);
-    }
-}
-/**
- * Validates UUID fields
- */
-function validateUUID(value, field) {
-    if (!isValidUUID(value)) {
-        throw new ValidationError(`${field} must be a valid UUID v4`, field, value);
-    }
-}
-/**
- * Validates optional UUID fields (allows undefined/null)
- */
-function validateOptionalUUID(value, field) {
-    if (value !== undefined && value !== null && !isValidUUID(value)) {
-        throw new ValidationError(`${field} must be a valid UUID v4 or undefined`, field, value);
-    }
-}
-/**
- * Validates ISO date fields
- */
-function validateISODate(value, field) {
-    if (!isValidISODate(value)) {
-        throw new ValidationError(`${field} must be a valid ISO 8601 date`, field, value);
-    }
-}
-/**
- * Validates optional ISO date fields
- */
-function validateOptionalISODate(value, field) {
-    if (value !== undefined && value !== null && !isValidISODate(value)) {
-        throw new ValidationError(`${field} must be a valid ISO 8601 date or undefined`, field, value);
-    }
-}
-function safeTry(fn, $default) {
-    try {
-        return fn();
-    }
-    catch {
-        return $default;
-    }
 }
 
 ;// ./src/export/traki.ts
