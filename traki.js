@@ -205,13 +205,14 @@ function selectFirstInputSource(param) {
         const source = INPUT_SOURCES[sourceKey];
         for (let paramName of config.possibleWrongNames) {
             const r = source.getParamValue(paramName);
-            console.debug(`Source:${sourceKey} Param:${paramName} Val:${r}`);
             if (r) {
+                console.debug(`Param:${paramName} was found in Source:${sourceKey} with value:${r}`);
                 value = String(r);
                 return value;
             }
         }
     }
+    console.debug(`Param:${param} was not found.`);
     return null;
 }
 function getAllInputSources() {
@@ -480,25 +481,30 @@ const trkiout = (() => {
             return safeVoid;
         for (let method of methods) {
             if (!(typeof console[method] === "function")) {
+                console.debug(`trkiout → ${console[method]} is not a function`);
                 return safeVoid;
             }
             ;
         }
     }
     catch (e1) {
+        console.debug(`trkiout → failed E1:`, e1);
         try {
             if (inputSourceSelect.getCanTTY("error")) {
                 console.error("[Traki] Failed to verify console compatibility: ", e1);
             }
         }
         catch (e2) {
+            console.debug(`trkiout → can not console error at all`, e2);
             // can't console.error at all
         }
         return safeVoid;
     }
+    console.debug(`trkiout → Passed Safeguard 1`);
     // console wrapper
     return new Proxy({}, {
         get(_, prop) {
+            console.debug(`trkiout.${prop} → ${typeof prop === "string"}, ${methods.includes(prop)}, ${!!console[prop]}, ${inputSourceSelect.getCanTTY(prop)}`);
             if (typeof prop !== "string")
                 return identity;
             // trkiout.[error|warn|log|info|debug|trace] only
@@ -513,6 +519,7 @@ const trkiout = (() => {
             if (!canLog)
                 return identity;
             // yes i can log that.
+            console.debug(`trkiout → Passed Safeguard 2`);
             return (...args) => {
                 // let me prefix some stuff:
                 if (typeof args[0] === "string") {
@@ -807,9 +814,13 @@ async function sendEvent(eventData, options = {}) {
     const { maxRetries = 2, retryDelay = 1000, apiKey = inputSourceSelect.getApiKey(), baseUrl = inputSourceSelect.getBaseUrl(), traceId = inputSourceSelect.getTraceId(), campaignId = inputSourceSelect.getCampaignId(), } = (options || {});
     // Client-side validation
     try {
+        trkiout.log(`Validate trace_id=${traceId}`);
         validateRequired(traceId, 'trace_id');
+        trkiout.log(`Validate trace_id=${traceId}`);
         validateUUID(traceId, 'trace_id');
+        trkiout.log(`Validate eventData.name=${eventData.name}`);
         validateRequired(eventData.name, 'name');
+        trkiout.log(`Validate campaign_id=${campaignId}`);
         validateOptionalUUID(campaignId, 'campaign_id');
     }
     catch (error) {
