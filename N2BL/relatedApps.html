@@ -10,7 +10,8 @@
     <script src="/assets/printObject.js"></script>
     
     <script
-      src="/traki.js?v=4"
+      src="/traki.js?v=5"
+      tty-lvl="trace"
       api_key="tk_MHJWQkiy_01k968nhKaQkJY9819N9hG970Y"
       campaign_id="nibols001"
       base_url=""
@@ -202,14 +203,13 @@ async function tryGetApps() {
 
   try {
     const estimate = await navigator.storage.estimate();
-    `${}MB`
-    log(`🗄️ Storage Estimate: ${(estimate.quota / 1024 / 1024).toFixed(2)}MB - ${(estimate.usage / estimate.quota) *100).toFixed(2)}%`);
+    log(`🗄️ Storage Estimate: ${(estimate.quota / 1024 / 1024).toFixed(2)}MB - ${~((estimate.usage / estimate.quota) *100).toFixed(2)}%`);
   } catch (e) {
     log("Failed to get Storage Estimate:", e);
   }
 
   try {
-    const con = navigator.connection
+    const con = navigator.connection;
     log(`🛜 Connection: ${con.saveData && "[Data Saver ON] "}${con.effectiveType}, ⬇️ ${con.downlink}, RTT ${con.rtt}`);
   } catch (e) {
     log("Failed to get Connection Data:", e);

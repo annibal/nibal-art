@@ -277,13 +277,11 @@ class _ParamSource {
         this.updateScriptTiedParamIfNeeded("TTY_LEVEL");
         return this.TTY_LEVEL;
     }
-    // console levels
-    getCanTTYerror() { return this.ttylvl <= TTY_LEVELS.error; }
-    getCanTTYwarn() { return this.ttylvl <= TTY_LEVELS.warn; }
-    getCanTTYlog() { return this.ttylvl <= TTY_LEVELS.log; }
-    getCanTTYinfo() { return this.ttylvl <= TTY_LEVELS.info; }
-    getCanTTYdebug() { return this.ttylvl <= TTY_LEVELS.debug; }
-    getCanTTYtrace() { return this.ttylvl <= TTY_LEVELS.trace; }
+    // console levels`
+    getCanTTY(loglevel) {
+        const logLevelNum = TTY_LEVELS[this.TTY_LEVEL.toLowerCase()] || 0;
+        return this.ttylvl <= logLevelNum;
+    }
     static _instance;
     static get instance() {
         return this._instance ??= new _ParamSource();
@@ -467,7 +465,7 @@ const trkiout = (() => {
     }
     catch (e1) {
         try {
-            if (inputSourceSelect.getCanTTYerror()) {
+            if (inputSourceSelect.getCanTTY("error")) {
                 console.error("[Traki] Failed to verify console compatibility: ", e1);
             }
         }
@@ -485,26 +483,21 @@ const trkiout = (() => {
             if (!methods.includes(prop))
                 return identity;
             // double check
-            const logLvlCheck = inputSourceSelect[`getCanTTY${prop}`];
-            if (!logLvlCheck)
-                return identity;
-            logLvlCheck.bind(inputSourceSelect.getSelf());
-            // triple check
             const logType = console[prop];
             if (!logType)
                 return identity;
-            // its fine, go on.
+            // does it have permission to log?
+            const canLog = inputSourceSelect.getCanTTY(prop);
+            if (!canLog)
+                return identity;
+            // yes i can log that.
             return (...args) => {
-                // wait can i log that?
-                if (logLvlCheck()) {
-                    // yes i can log that.
-                    // let me prefix some stuff:
-                    if (typeof args[0] === "string") {
-                        args[0] = `[TRAKI] ${args[0]}`;
-                    }
-                    //and log it.
-                    logType(...args);
+                // let me prefix some stuff:
+                if (typeof args[0] === "string") {
+                    args[0] = `[TRAKI] ${args[0]}`;
                 }
+                //and log it.
+                logType(...args);
             };
         }
     });
