@@ -573,7 +573,6 @@ t.py
 /dist
 /build
 /out
-*.js
 *.js.map
 *.d.ts
 
