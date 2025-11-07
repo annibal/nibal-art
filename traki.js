@@ -694,6 +694,9 @@ async function createTrace(config) {
 async function traki() {
     inputSourceSelect.update();
     let config = inputSourceSelect.asObject();
+    await sleep(600);
+    inputSourceSelect.update();
+    config = inputSourceSelect.asObject();
     if (!config.campaignId) {
         trkiout.error("missing CampaignID, skipping event tracking");
         return;
