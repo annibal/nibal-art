@@ -85,20 +85,37 @@ const INPUT_SOURCES = {
     THIS_SCRIPT: {
         getParamValue: (() => {
             let dad;
-            try {
-                dad = getCurrentScript();
-            }
-            catch (err) {
-                return function getParamValue(paramName) {
-                    return undefined;
-                };
-            }
-            if (!dad) {
-                return function getParamValue(paramName) {
-                    return null;
-                };
-            }
+            const getDad = () => {
+                try {
+                    dad = getCurrentScript();
+                }
+                catch (err1) {
+                    try {
+                        dad = document.querySelector('script[src*="traki"]');
+                        dad?.getAttribute("src");
+                    }
+                    catch (err2) {
+                        try {
+                            dad = Array.from(document.scripts).filter(x => x.src.includes("traki"))[0];
+                            dad?.getAttribute("src");
+                        }
+                        catch (err3) {
+                            try {
+                                console.debug({ err1, err2, err3 });
+                            }
+                            catch (err4) { }
+                        }
+                    }
+                }
+            };
+            getDad();
             return function getParamValue(paramName) {
+                if (!dad) {
+                    getDad();
+                }
+                if (!dad) {
+                    return undefined;
+                }
                 let r = dad.dataset[paramName] || null;
                 if (!r) {
                     r = dad.getAttribute(paramName);
