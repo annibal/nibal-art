@@ -208,10 +208,11 @@ function selectFirstInputSource(param) {
             console.debug(`Source:${sourceKey} Param:${paramName} Val:${r}`);
             if (r) {
                 value = String(r);
+                return value;
             }
         }
     }
-    return value;
+    return null;
 }
 function getAllInputSources() {
     return Object.keys(POSSIBLE_NAMES).reduce((all, curr) => ({
