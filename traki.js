@@ -288,6 +288,9 @@ class _ParamSource {
     static get instance() {
         return this._instance ??= new _ParamSource();
     }
+    getSelf() {
+        return this;
+    }
 }
 const ParamSource = _ParamSource.instance;
 /* harmony default export */ const inputSourceSelect = (ParamSource);
@@ -485,6 +488,7 @@ const trkiout = (() => {
             const logLvlCheck = inputSourceSelect[`getCanTTY${prop}`];
             if (!logLvlCheck)
                 return identity;
+            logLvlCheck.bind(inputSourceSelect.getSelf());
             // triple check
             const logType = console[prop];
             if (!logType)
