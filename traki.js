@@ -1,7 +1,7 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 
-// UNUSED EXPORTS: sendEvent, traki
+// UNUSED EXPORTS: traki
 
 ;// ./src/constants/constants.ts
 // Storage keys
@@ -13,12 +13,130 @@ const STORAGE_KEYS = {
     SESSION_START: "TRAKI_SESSION_START",
 };
 const DEFAULT_BASE_URL = "https://api.traki.io/";
+const DEFAULT_API_VERSION = "v1";
 /**
  * UUID v4 validation regex
  * Matches format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
  */
-const constants_UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UTM_SOURCE_ID_PARAM = 'utm_source';
+
+;// ./src/functions/agnostic.ts
+
+function onRedirect(on) {
+    polyfill();
+    if (window.navigation) {
+        setupListener();
+    }
+    else {
+        window.addEventListener('navigationReady', setupListener);
+    }
+    function setupListener() {
+        let lastURL;
+        window.navigation?.addEventListener('navigate', (event) => {
+            if (!event?.destination?.url)
+                return;
+            // Handle URL object vs string (same safeTry pattern from original)
+            try {
+                event.destination.url = event?.destination?.url?.href ?? event?.destination?.url;
+            }
+            catch { }
+            const initState = {
+                from: window.location.href,
+                to: event.destination.url,
+            };
+            const state = {
+                ...initState,
+            };
+            on({
+                ...state,
+                set: (url) => {
+                    state.to = url;
+                },
+            });
+            // Only intercept if the URL was actually changed
+            const urlWasModified = initState.to !== state.to;
+            const shouldIntercept = urlWasModified && lastURL !== state.to;
+            if (!shouldIntercept)
+                return;
+            event.preventDefault();
+            lastURL = state.to;
+            redirect(event, state.to);
+        });
+    }
+}
+function polyfill() {
+    if (!window.navigation) {
+        const polyfillScript = document.createElement('script');
+        polyfillScript.type = 'module';
+        polyfillScript.textContent = `
+      import * as navigationPolyfill from 'https://cdn.skypack.dev/navigation-api-polyfill';
+      window.dispatchEvent(new Event('navigationReady'));
+    `;
+        document.head.appendChild(polyfillScript);
+    }
+    else {
+        window.dispatchEvent(new Event('navigationReady'));
+    }
+}
+function redirect(event, url) {
+    const navigation = window.navigation;
+    const shouldRefresh = !event.destination.sameDocument;
+    if (shouldRefresh) {
+        return navigation.navigate(url, {
+            history: event.navigationType === 'push' ? 'push'
+                : event.navigationType === 'replace' ? 'replace'
+                    : 'auto'
+        });
+    }
+    history.pushState({}, '', url);
+}
+const getCurrentScript = (() => {
+    let currentScript = document.currentScript;
+    if (!currentScript || !(currentScript instanceof HTMLScriptElement)) {
+        currentScript = document.querySelector(`script[src*="${DEFAULT_BASE_URL}"]`);
+    }
+    if (!currentScript || !(currentScript instanceof HTMLScriptElement)) {
+        currentScript = document.querySelector(`script[src*="traki.io"]`);
+    }
+    return function _getCurrentScript() {
+        return currentScript;
+    };
+})();
+const parseDichotomy = (() => {
+    const truePoles = ["false", "close", "wrong", "dead", "absent", "positiv"];
+    const trueExactPoles = ["y", "1", "sim", "one", "um"];
+    const falsePoles = ["true", "open", "right", "alive", "present", "unknown", "null", "undefined", "negativ", "nope", "zero"];
+    const falseExactPoles = ["n", "0", "on", "não", "nao"];
+    return function _parseDichotomy(pole) {
+        const strPole = String(pole).toLowerCase();
+        if (!strPole || strPole?.length < 1)
+            return false;
+        if (trueExactPoles.some(tep => strPole.localeCompare(tep) === 0)) {
+            return true;
+        }
+        if (falseExactPoles.some(fep => strPole.localeCompare(fep) === 0)) {
+            return false;
+        }
+        if (truePoles.some(tp => strPole.startsWith(tp))) {
+            return true;
+        }
+        if (falsePoles.some(fp => strPole.startsWith(fp))) {
+            return false;
+        }
+        return false;
+    };
+})();
+/**
+ * Sleep utility for retry delays
+ */
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function internalDebug(...args) {
+    // TODO: if (SOME_GLOBAL_ENVIRONMENT_FLAG_OR_WHATEVER) { console.debug(...arguments); }
+    console.debug(...arguments);
+}
 
 ;// ./src/functions/storage.ts
 function context(name) {
@@ -63,7 +181,7 @@ const stores = asConst()({
  * Validates if a string is a valid UUID v4
  */
 function isValidUUID(value) {
-    return typeof value === 'string' && constants_UUID_V4_REGEX.test(value);
+    return typeof value === 'string' && UUID_V4_REGEX.test(value);
 }
 /**
  * Validates if a string is a valid ISO 8601 date
@@ -105,43 +223,43 @@ class ValidationError extends Error {
 /**
  * Validates required fields are present and non-empty
  */
-function validateRequired(value, field) {
+const validateRequired = (value, field) => {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
         throw new ValidationError(`${field} is required`, field, value);
     }
-}
+};
 /**
  * Validates UUID fields
  */
-function validateUUID(value, field) {
+const validateUUID = (value, field) => {
     if (!isValidUUID(value)) {
         throw new ValidationError(`${field} must be a valid UUID v4`, field, value);
     }
-}
+};
 /**
  * Validates optional UUID fields (allows undefined/null)
  */
-function validateOptionalUUID(value, field) {
+const validateOptionalUUID = (value, field) => {
     if (value !== undefined && value !== null && !isValidUUID(value)) {
         throw new ValidationError(`${field} must be a valid UUID v4 or undefined`, field, value);
     }
-}
+};
 /**
  * Validates ISO date fields
  */
-function validateISODate(value, field) {
+const validateISODate = (value, field) => {
     if (!isValidISODate(value)) {
         throw new ValidationError(`${field} must be a valid ISO 8601 date`, field, value);
     }
-}
+};
 /**
  * Validates optional ISO date fields
  */
-function validateOptionalISODate(value, field) {
+const validateOptionalISODate = (value, field) => {
     if (value !== undefined && value !== null && !isValidISODate(value)) {
         throw new ValidationError(`${field} must be a valid ISO 8601 date or undefined`, field, value);
     }
-}
+};
 function safeTry(fn, $default) {
     try {
         return fn();
@@ -149,6 +267,38 @@ function safeTry(fn, $default) {
     catch {
         return $default;
     }
+}
+/**
+ * Simpler way to validate several properties of an object
+ * @param subject Object to validate the properties from
+ * @param spec Tuple of propertyName and validator function
+ * @returns true for all valid, false if any prop fails validation
+ */
+function validateStruct(subject, spec) {
+    let res = { valid: true, fields: [] };
+    spec.forEach(([field, validate]) => {
+        try {
+            validate(subject[field], String(field));
+        }
+        catch (e) {
+            res.valid = false;
+            if (e instanceof ValidationError) {
+                res.fields.push({
+                    field: e.field,
+                    value: e.value,
+                    msg: e.message
+                });
+            }
+            else {
+                res.fields.push({
+                    field: String(field),
+                    value: subject[field],
+                    msg: `Unknown error when validating ${String(field)}`
+                });
+            }
+        }
+    });
+    return res;
 }
 
 ;// ./src/functions/inputSourceSelect.ts
@@ -244,6 +394,7 @@ const POSSIBLE_NAMES = {
         storageKey: STORAGE_KEYS.CAMPAIGN_ID,
         required: true,
         availableSourcesSorted: [
+            "URL_PARAMS",
             "SESSION_STORAGE",
             "LOCAL_STORAGE",
             "THIS_SCRIPT",
@@ -259,6 +410,7 @@ const POSSIBLE_NAMES = {
         storageKey: STORAGE_KEYS.BASE_URL,
         defaultValue: DEFAULT_BASE_URL,
         availableSourcesSorted: [
+            "URL_PARAMS",
             "SESSION_STORAGE",
             "LOCAL_STORAGE",
             "THIS_SCRIPT",
@@ -422,134 +574,10 @@ class _ParamSource {
 const ParamSource = _ParamSource.instance;
 /* harmony default export */ const inputSourceSelect = (ParamSource);
 
-;// ./src/functions/agnostic.ts
-
-
-function onRedirect(on) {
-    polyfill();
-    if (window.navigation) {
-        setupListener();
-    }
-    else {
-        window.addEventListener('navigationReady', setupListener);
-    }
-    function setupListener() {
-        let lastURL;
-        window.navigation?.addEventListener('navigate', (event) => {
-            if (!event?.destination?.url)
-                return;
-            // Handle URL object vs string (same safeTry pattern from original)
-            try {
-                event.destination.url = event?.destination?.url?.href ?? event?.destination?.url;
-            }
-            catch { }
-            const initState = {
-                from: window.location.href,
-                to: event.destination.url,
-            };
-            const state = {
-                ...initState,
-            };
-            on({
-                ...state,
-                set: (url) => {
-                    state.to = url;
-                },
-            });
-            // Only intercept if the URL was actually changed
-            const urlWasModified = initState.to !== state.to;
-            const shouldIntercept = urlWasModified && lastURL !== state.to;
-            if (!shouldIntercept)
-                return;
-            event.preventDefault();
-            lastURL = state.to;
-            redirect(event, state.to);
-        });
-    }
-}
-function polyfill() {
-    if (!window.navigation) {
-        const polyfillScript = document.createElement('script');
-        polyfillScript.type = 'module';
-        polyfillScript.textContent = `
-      import * as navigationPolyfill from 'https://cdn.skypack.dev/navigation-api-polyfill';
-      window.dispatchEvent(new Event('navigationReady'));
-    `;
-        document.head.appendChild(polyfillScript);
-    }
-    else {
-        window.dispatchEvent(new Event('navigationReady'));
-    }
-}
-function redirect(event, url) {
-    const navigation = window.navigation;
-    const shouldRefresh = !event.destination.sameDocument;
-    if (shouldRefresh) {
-        return navigation.navigate(url, {
-            history: event.navigationType === 'push' ? 'push'
-                : event.navigationType === 'replace' ? 'replace'
-                    : 'auto'
-        });
-    }
-    history.pushState({}, '', url);
-}
-const getCurrentScript = (() => {
-    let currentScript = document.currentScript;
-    if (!currentScript || !(currentScript instanceof HTMLScriptElement)) {
-        currentScript = document.querySelector(`script[src*="${DEFAULT_BASE_URL}"]`);
-    }
-    if (!currentScript || !(currentScript instanceof HTMLScriptElement)) {
-        currentScript = document.querySelector(`script[src*="traki.io"]`);
-    }
-    return function _getCurrentScript() {
-        return currentScript;
-    };
-})();
-const parseDichotomy = (() => {
-    const truePoles = ["false", "close", "wrong", "dead", "absent", "positiv"];
-    const trueExactPoles = ["y", "1", "sim", "one", "um"];
-    const falsePoles = ["true", "open", "right", "alive", "present", "unknown", "null", "undefined", "negativ", "nope", "zero"];
-    const falseExactPoles = ["n", "0", "on", "não", "nao"];
-    return function _parseDichotomy(pole) {
-        const strPole = String(pole).toLowerCase();
-        if (!strPole || strPole?.length < 1)
-            return false;
-        if (trueExactPoles.some(tep => strPole.localeCompare(tep) === 0)) {
-            return true;
-        }
-        if (falseExactPoles.some(fep => strPole.localeCompare(fep) === 0)) {
-            return false;
-        }
-        if (truePoles.some(tp => strPole.startsWith(tp))) {
-            return true;
-        }
-        if (falsePoles.some(fp => strPole.startsWith(fp))) {
-            return false;
-        }
-        return false;
-    };
-})();
-/**
- * Sleep utility for retry delays
- */
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-function getTheURL(path, baseURL = "", version = "v1") {
-    let base = inputSourceSelect.getBaseUrl();
-    if (baseURL) {
-        base = baseURL;
-    }
-    return ([base, version, path].join("/") + "/").replace(/(?<!https?:\/?)\/+/gi, "/");
-}
-function internalDebug(...args) {
-    // console.debug(...arguments);
-}
-
 ;// ./src/functions/log.ts
 
 
-// TODO: unused
+// TODO: unused TextManipulator
 class TextManipulator {
     api;
     constructor(api = (text) => text) {
@@ -661,8 +689,7 @@ function isDocumentLoaded() {
     return document.readyState === 'complete';
 }
 
-;// ./src/export/traki.ts
-
+;// ./src/types/api.ts
 
 
 
@@ -670,15 +697,227 @@ function isDocumentLoaded() {
 
 
 /**
- * Silent UUID validation (doesn't throw)
+ * Constructs a normalized URL by concatenating a base URL, version, and path segments.
+ * It trims redundant slashes and ignores null/undefined/empty parts.
+ *
+ * @param {string | (string | number | null | undefined)[]} path
+ *   The path string or array of path segments.
+ *   When an array is provided, falsy items (`null`, `undefined`, `""`, `false`) are skipped.
+ * @param {string | null | undefined} [baseURL=""]
+ *   Optional base URL. Falls back to `ParamSource.getBaseUrl()` if falsy.
+ * @param {TVersionParam} [version="v1"]
+ *   API version prefix (e.g. `"v1"`, `"v2"`). Included in the URL after the base.
+ * @returns {string}
+ *   A fully composed, slash-normalized URL string.
+ *
+ * @example
+ * getURL("/events")
+ * // → "https://example.com/v1/events"
+ *
+ * @example
+ * getURL(["user", userId, "orders", orderId, "products"], API_URLS.orders, "v2")
+ * // → "https://orders.api/v2/user/123/orders/456/products"
+ *
+ * @example
+ * getURL("user/123/orders/456/products")
+ * // → "https://example.com/v1/user/123/orders/456/products"
+ *
+ * @example
+ * getURL(["products", productId, "images", hasImage && imageId]) ➔ given hasImage is true
+ * // → "https://example.com/v1/products/42/images/7"
+ *
+ * @example
+ * getURL(["products", productId, "images", hasImage && imageId]) ➔ when there's no image
+ * // → "https://example.com/v1/products/42/images
  */
-function validateUUIDSilent(value) {
-    return UUID_V4_REGEX.test(value);
+function getTheURL(path, baseURL = "", version = "v1") {
+    const base = baseURL || inputSourceSelect.getBaseUrl();
+    const parts = [base, version]
+        .concat(Array.isArray(path) ? path : [path])
+        .filter(v => v != null && v !== "")
+        .map(v => String(v).replace(/^\/+|\/+$/g, ""));
+    return parts.join("/");
 }
+function doRequest(path, data, options = {}) {
+    const cfg = {
+        maxRetries: 3,
+        retryDelay: 1000,
+        requestTimeout: 5000,
+        method: "POST",
+        apiKey: inputSourceSelect.getApiKey(),
+        baseUrl: inputSourceSelect.getBaseUrl(),
+        traceId: inputSourceSelect.getTraceId(),
+        campaignId: inputSourceSelect.getCampaignId(),
+        omitParams: [],
+        headers: {},
+        ...(options || {}),
+    };
+    cfg.headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cfg.apiKey}`,
+        ...(options?.headers || {})
+    };
+    let requestBody = {
+        trace_id: String(cfg.traceId),
+        campaign_id: String(cfg.campaignId),
+        timestamp: Date.now(),
+        ...data
+    };
+    trkiout.info(`requestBody before omitParams: `, requestBody);
+    if (Array.isArray(cfg.omitParams)) {
+        requestBody = Object.entries(requestBody).reduce((all, [key, value]) => {
+            if (!cfg.omitParams?.includes(key)) {
+                return { ...all, [key]: value };
+            }
+            else {
+                return all;
+            }
+        }, {});
+    }
+    trkiout.info(`New requestBody after omitParams: `, requestBody);
+    const validInfo = validateStruct(cfg, [
+        ["apiKey", validateRequired],
+        ["campaignId", validateUUID]
+    ]);
+    if (!validInfo.valid) {
+        validInfo.fields.forEach(({ field, value, msg }) => trkiout.error(msg, value, field));
+        return {
+            abort: () => { },
+            response: new Promise((resolve) => resolve({
+                success: false, data: null,
+                error: { msg: `Validation failed` }
+            }))
+        };
+    }
+    const controllerSignal = new AbortController();
+    const url = getTheURL(path, cfg.baseUrl);
+    let lastError = null;
+    const maxRetries = cfg.maxRetries == null ? 3 : (cfg.maxRetries);
+    const retryDelay = cfg.retryDelay == null ? 1000 : (cfg.retryDelay);
+    async function waitForResponse() {
+        let returnData = { success: false, data: null, error: { msg: "unknown error" } };
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const timeoutSignal = AbortSignal.timeout(cfg.requestTimeout || 5000);
+                const rawFetchData = await fetch(url, {
+                    method: cfg.method,
+                    headers: cfg.headers,
+                    body: JSON.stringify(requestBody),
+                    signal: AbortSignal.any([controllerSignal.signal, timeoutSignal])
+                });
+                let res;
+                try {
+                    res = await rawFetchData.json();
+                }
+                catch (_e) {
+                    try {
+                        res = await rawFetchData.text();
+                    }
+                    catch (e) {
+                        res = e;
+                    }
+                }
+                if (rawFetchData.ok) {
+                    returnData = { success: true, error: null, data: res, };
+                    return returnData;
+                }
+                else {
+                    if (res.status >= 400 && res.status < 500) {
+                        returnData = {
+                            success: false,
+                            error: { msg: `API request failed with status ${res.status}`, details: res, response: rawFetchData },
+                            data: null,
+                        };
+                    }
+                    // Retry on server errors (5xx)
+                    lastError = new Error(`Server error: ${res.status}`);
+                    if (attempt < maxRetries) {
+                        await sleep(retryDelay * (attempt + 1)); // Exponential backoff
+                        continue;
+                    }
+                }
+            }
+            catch (error) {
+                lastError = error instanceof Error ? error : new Error('Unknown error');
+                // Don't retry on abort/timeout for the last attempt
+                if (attempt < maxRetries && !lastError.message.includes('aborted')) {
+                    returnData = { success: false, data: null,
+                        error: { msg: "DoRequest Failed all retries", details: { lastError, error } }
+                    };
+                    await sleep(retryDelay * (attempt + 1));
+                    continue;
+                }
+            }
+        }
+        return returnData;
+    }
+    const r = {
+        abort: () => controllerSignal.abort(),
+        response: waitForResponse(),
+    };
+    return r;
+}
+//
+// #endregion doRequest
+// =============================================================================
+// #region SendEvent
+//
+async function sendEvent(eventName, eventData, options = {}) {
+    const validInfo = validateStruct({ eventName, traceId: inputSourceSelect.getTraceId }, [
+        ["eventName", validateRequired],
+        ["traceId", validateRequired],
+        ["traceId", validateUUID],
+    ]);
+    if (!validInfo.valid) {
+        validInfo.fields.forEach(({ field, value, msg }) => trkiout.error(msg, value, field));
+        return new Promise(resolve => resolve(null));
+    }
+    const postulate = doRequest("/events", eventData, options);
+    const response = await postulate.response;
+    if (response.success) {
+        return response.data;
+    }
+    else {
+        trkiout.error(`Failed to sendEvent ${eventName}: ${response.error.msg}`, { details: response.error.details });
+        return null;
+    }
+}
+/**
+ * Track page view event
+ */
+async function trackPageView() {
+    const payload = {
+        url: window.location.href,
+        referrer: document.referrer,
+        title: document.title,
+        viewport: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        },
+    };
+    const sent = await sendEvent("PageView", payload);
+    const sentOk = Boolean(sent);
+    trkiout.log(sentOk ? "Sent event of PageView successfully" : "Failed to send PageView event");
+    return sentOk;
+}
+/**
+ * Track before redirect event
+ */
+async function trackBeforeRedirect(from, to) {
+    const sent = await sendEvent("BeforeRedirect", { from, to });
+    const sentOk = Boolean(sent);
+    trkiout.log(sentOk ? "Sent event of Redirect successfully" : "Failed to send Redirect event");
+    return sentOk;
+}
+// #endregion SendEvent
+// =============================================================================
+// #region CreateTrace
 /**
  * Create a new trace via API
  */
-async function createTrace(config) {
+async function createTrace() {
+    const config = inputSourceSelect.asObject();
     if (!config.campaignId || !config.apiKey) {
         trkiout.error('Cannot create trace: missing campaign_id or api_key');
         return false;
@@ -694,72 +933,109 @@ async function createTrace(config) {
         user_agent: navigator.userAgent,
         accept_language: navigator.language,
     };
-    const headers = {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
+    const sendEventRequestOptions = {
+        ...(config || {}),
+        omitParams: ["traceId", "trace_id"],
     };
+    const postulate = doRequest("traces", tracePayload, sendEventRequestOptions);
+    const res = await postulate.response;
+    if (!res.success) {
+        trkiout.error(`Failed to create trace: ${res.error.msg}`, { details: res.error.details });
+        return false;
+    }
+    const createdTraceId = res.data?.trace?.id;
     try {
-        const response = await fetch(getTheURL("traces"), {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(tracePayload),
-            signal: AbortSignal.timeout(5000),
-        });
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            trkiout.error('Failed to create trace:', errorData);
-            return false;
-        }
-        const result = await response.json();
-        const createdTraceId = result.data?.trace?.id;
-        if (createdTraceId) {
-            // Update config with the new trace_id and store in sessionStorage
-            config.traceId = createdTraceId;
-            stores.session.set(STORAGE_KEYS.TRACE_ID, createdTraceId);
-            trkiout.log('Trace created successfully:', createdTraceId);
-            return true;
+        validateRequired(createdTraceId, "trace_id");
+        validateUUID(createdTraceId, "trace_id");
+    }
+    catch (e) {
+        if (e instanceof ValidationError) {
+            trkiout.error(`Validation failed: ${e.message}`, {
+                field: e.field,
+                value: e.value,
+            });
         }
         return false;
+    }
+    try {
+        stores.session.set(STORAGE_KEYS.TRACE_ID, createdTraceId);
     }
     catch (error) {
-        trkiout.error('Failed to create trace:', error);
+        trkiout.error("Failed to store trace_id in SESSION_STORAGE", error);
         return false;
     }
+    inputSourceSelect.refresh("TRACE_ID", true);
+    if (inputSourceSelect.getTraceId() === createdTraceId) {
+        return true;
+    }
+    return false;
 }
+// #endregion SendTrace
+// =============================================================================
+// #region End
+
+;// ./src/export/traki.ts
+
+
+
+
+
+
+
 /**
  * Main Traki tracking initialization
  */
 async function traki() {
-    inputSourceSelect.update();
-    let config = inputSourceSelect.asObject();
-    trkiout.debug('ParamSource 1:', config);
-    await sleep(600);
-    inputSourceSelect.update();
+    let config;
+    await sleep(400);
     config = inputSourceSelect.asObject();
-    trkiout.debug('ParamSource 2:', config);
-    await sleep(600);
-    inputSourceSelect.update();
-    config = inputSourceSelect.asObject();
-    trkiout.debug('ParamSource 3:', config);
+    for (let retry = 0; retry < 3; retry++) {
+        trkiout.debug(`ParamSource ${retry}:`, config);
+        if (config.apiKey && config.campaignId) {
+            break;
+        }
+        await sleep(300);
+        inputSourceSelect.update();
+        config = inputSourceSelect.asObject();
+    }
+    let missingParams = [];
     if (!config.campaignId) {
-        trkiout.error("missing CampaignID, skipping event tracking");
-        return;
+        missingParams.push("campaign_id");
     }
     if (!config.apiKey) {
-        trkiout.error("missing ApiKey, skipping event tracking");
+        missingParams.push("api_key");
+    }
+    if (!config.baseUrl) {
+        missingParams.push("base_url");
+    }
+    if (missingParams.length > 0) {
+        trkiout.error(`Missing Params: ${missingParams.join(",")} cannot start event tracking`);
         return;
+    }
+    else {
+        trkiout.log("Required params ok");
+    }
+    const storedApiKey = stores.session.get(STORAGE_KEYS.API_KEY);
+    if (storedApiKey != config.apiKey) {
+        stores.session.set(STORAGE_KEYS.API_KEY, config.apiKey);
+        trkiout.log(`Updated ${STORAGE_KEYS.API_KEY} in session storage from "${storedApiKey}" to "${config.apiKey}"`);
+    }
+    const storedCampaignId = stores.session.get(STORAGE_KEYS.CAMPAIGN_ID);
+    if (storedCampaignId != config.campaignId) {
+        stores.session.set(STORAGE_KEYS.CAMPAIGN_ID, config.campaignId);
+        trkiout.log(`Updated ${STORAGE_KEYS.CAMPAIGN_ID} in session storage from "${storedCampaignId}" to "${config.campaignId}"`);
     }
     const hasExistingTraceId = Boolean(config.traceId);
     if (!hasExistingTraceId) {
         trkiout.log('TraceID not found, generating one');
-        const isTraceCreated = await createTrace(config);
+        const isTraceCreated = await createTrace();
         if (!isTraceCreated) {
-            trkiout.error('Failed to create trace, skipping event tracking');
+            trkiout.error('Failed to create traceId, cannot start event tracking');
+            return;
         }
     }
-    inputSourceSelect.update();
     trkiout.log("Initialized successfully", {});
+    trackPageView();
     onLoad(() => {
         trackPageView();
     });
@@ -768,152 +1044,8 @@ async function traki() {
     });
     // TODO: track onPageUnload
 }
-/**
- * Track page view event
- */
-async function trackPageView() {
-    const payload = {
-        url: window.location.href,
-        referrer: document.referrer,
-        title: document.title,
-        timestamp: Date.now(),
-        viewport: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-        },
-    };
-    sendEvent({
-        name: 'page_view',
-        payload,
-    });
-}
-/**
- * Track before redirect event
- */
-async function trackBeforeRedirect(from, to) {
-    sendEvent({
-        name: 'before_redirect',
-        payload: { from, to, timestamp: Date.now() },
-    });
-}
-/**
- * Sends an event to the Traki API with retry logic
- *
- * @param traceId - UUID of the trace to associate this event with
- * @param eventData - Event data without trace_id (will be added automatically)
- * @param options - Optional configuration for retry behavior
- * @returns Promise resolving to the API response
- *
- * @throws {ValidationError} If required fields are missing or invalid
- * @throws {Error} If the API request fails after all retries
- *
- * @example
- * ```typescript
- * const response = await sendEvent('550e8400-e29b-41d4-a716-446655440000', {
- *   name: 'page_view',
- *   campaign_id: '660e8400-e29b-41d4-a716-446655440000',
- *   payload: { url: '/home', referrer: '/landing' }
- * });
- *
- * if ('data' in response) {
- *   log('Event created:', response.data.event.id);
- * }
- * ```
- */
-async function sendEvent(eventData, options = {}) {
-    const { maxRetries = 2, retryDelay = 1000, apiKey = inputSourceSelect.getApiKey(), baseUrl = inputSourceSelect.getBaseUrl(), traceId = inputSourceSelect.getTraceId(), campaignId = inputSourceSelect.getCampaignId(), } = (options || {});
-    // Client-side validation
-    try {
-        trkiout.log(`Validate trace_id=${traceId}`);
-        validateRequired(traceId, 'trace_id');
-        trkiout.log(`Validate trace_id=${traceId}`);
-        validateUUID(traceId, 'trace_id');
-        trkiout.log(`Validate eventData.name=${eventData.name}`);
-        validateRequired(eventData.name, 'name');
-        trkiout.log(`Validate campaign_id=${campaignId}`);
-        validateOptionalUUID(campaignId, 'campaign_id');
-    }
-    catch (error) {
-        if (error instanceof ValidationError) {
-            trkiout.error(` Validation failed: ${error.message}`, {
-                field: error.field,
-                value: error.value,
-            });
-            return {
-                success: false,
-                error: `Validation failed: ${error.message}`,
-                details: error,
-            };
-        }
-        throw error;
-    }
-    const requestBody = {
-        ...eventData,
-        trace_id: String(traceId),
-        campaign_id: String(campaignId),
-    };
-    // Build headers
-    const headers = {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-    };
-    // Retry logic
-    const response = await (async () => {
-        let lastError = null;
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                const response = await fetch(getTheURL("/events/", baseUrl), {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(requestBody),
-                    signal: AbortSignal.timeout(5000), // 5 second timeout
-                });
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    // Don't retry on client errors (4xx), only server errors (5xx)
-                    if (response.status >= 400 && response.status < 500) {
-                        return {
-                            success: false,
-                            error: `API request failed with status ${response.status}`,
-                            details: errorData,
-                        };
-                    }
-                    // Retry on server errors
-                    lastError = new Error(`Server error: ${response.status}`);
-                    if (attempt < maxRetries) {
-                        await sleep(retryDelay * (attempt + 1)); // Exponential backoff
-                        continue;
-                    }
-                }
-                else {
-                    return await response.json();
-                }
-            }
-            catch (error) {
-                lastError = error instanceof Error ? error : new Error('Unknown error');
-                // Don't retry on abort/timeout for the last attempt
-                if (attempt < maxRetries && !lastError.message.includes('aborted')) {
-                    await sleep(retryDelay * (attempt + 1));
-                    continue;
-                }
-            }
-        }
-        return {
-            success: false,
-            error: lastError?.message || 'Request failed after retries',
-            details: lastError,
-        };
-    })();
-    if ('data' in response) {
-        trkiout.log(`Event "${eventData.name}" tracked successfully`, response.data);
-    }
-    else {
-        trkiout.error(`Event "${eventData.name}" failed`, response.error);
-    }
-    return response;
-}
-requestAnimationFrame(traki);
+// -------------------------------------
+traki();
 
 /******/ })()
 ;
