@@ -165,10 +165,10 @@ async function tryGetAllInfos() {
   }
   try {
     log("📡 Pointer Capabilities:");
-    log(` - hover: ${matchMedia("(hover: hover)").matches}`);
-    log(` - any-hover: ${matchMedia("(any-hover: hover)").matches}`);
-    log(` - pointer: ${matchMedia("(pointer: fine)").matches}`);
-    log(` - any-pointer: ${matchMedia("(any-pointer: fine)").matches}`);
+    log(`   ⤷ hover: ${matchMedia("(hover: hover)").matches}`);
+    log(`   ⤷ any-hover: ${matchMedia("(any-hover: hover)").matches}`);
+    log(`   ⤷ pointer: ${matchMedia("(pointer: fine)").matches}`);
+    log(`   ⤷ any-pointer: ${matchMedia("(any-pointer: fine)").matches}`);
   } catch(e){ log("Pointer failed:", e); }
   try {
     log(`⚙️ Product: ${navigator.product} v${navigator.productSub}`);
@@ -251,7 +251,7 @@ async function tryGetAllInfos() {
     const uadata = navigator.userAgentData;
     log(`📛 User Agent Data: ${uadata.ismobile ? "Mobile" : "Desktop"}, ${uadata.platform}`);
     uadata.brands.forEach(brand => {
-      log(` - ${brand.brand} v${brand.version}`);
+      log(`   ⤷ ${brand.brand} v${brand.version}`);
     });
   } catch (e) {
     try {
@@ -265,14 +265,14 @@ async function tryGetAllInfos() {
     if (navigator.userAgentData?.getHighEntropyValues) {
       const hi = await navigator.userAgentData.getHighEntropyValues(["architecture","model","platformVersion","fullVersionList"]);
       log(JSON.stringify(hi, null, 2));
-    } else log(" - Not supported");
+    } else log("   ⤷ Not supported");
   } catch(e){ log("UA entropy failed:", e); }
 
   // try {
   //   log("📋 Clipboard Types Supported:");
   //   if (navigator.clipboard?.read) {
   //     const items = await navigator.clipboard.read();
-  //     items.forEach((i,n)=> log(` - item[${n}] types: ${i.types.join(", ")}`));
+  //     items.forEach((i,n)=> log(`   ⤷ item[${n}] types: ${i.types.join(", ")}`));
   //   } else log("Clipboard read not available");
   // } catch(e){ log("Clipboard read failed:", e); }
   
@@ -380,7 +380,7 @@ async function tryGetAllInfos() {
       log(`   ⤷ Max Texture Size: ${gl.getParameter(gl.MAX_TEXTURE_SIZE)}`);
       log(`   ⤷ Max Vertex Textures: ${gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS)}`);
       log(`   ⤷ Extensions: ${gl.getSupportedExtensions().join(", ")}`);
-    } else log(" - WebGL2 unavailable");
+    } else log("   ⤷ WebGL2 unavailable");
   } catch(e){ log("WebGL2 failed:", e); }
 
   try {
@@ -441,7 +441,7 @@ async function tryGetAllInfos() {
     if ('fonts' in navigator && navigator.fonts.query) {
       const fonts = await navigator.fonts.query();
       for await (const f of fonts) log(`   ⤷ ${f.postscriptName}`);
-    } else log(" - Not supported");
+    } else log("`   ⤷ Not supported");
   } catch(e){ log("Fonts failed:", e); }
 
   try {
@@ -461,7 +461,7 @@ async function tryGetAllInfos() {
       log(`   ⤷ Vendor: ${adapter.vendor}`);
       log(`   ⤷ Architecture: ${adapter.architecture}`);
       log(`   ⤷ Features: ${[...adapter.features].join(", ")}`);
-    } else log(" - WebGPU unavailable");
+    } else log("`   ⤷ WebGPU unavailable");
   } catch(e){ log("WebGPU failed:", e); }
 
   log("⌣⌢".repeat(8));
