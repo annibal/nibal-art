@@ -252,6 +252,14 @@ async function tryGetApps() {
   } catch (e) {
     log("Failed to get Connection Data:", e);
   }
+  
+  try {
+    const btPermission = await navigator.permissions.query({ name: "bluetooth" });
+    const btAvailability = await navigator.bluetooth.getAvailability();
+    log(`ᚼᛒ Bluetooth: Permission ${btPermission ? '✅' : '❌'}, Availability ${btAvailability ? '✅' : '❌'}, `)
+  } catch (e) {
+    log("Failed to get Connection Data:", e);
+  }
 
   try {
     const battery = await navigator.getBattery();
@@ -272,7 +280,10 @@ async function tryGetApps() {
   } catch (e) {
     log("Failed to get User Agent Data:", e);
   }
-  log("⌣⌢".repeat(8))
+
+
+  log("⌣⌢".repeat(8));
+
 
   if ('getInstalledRelatedApps' in navigator) {
     try {
@@ -295,7 +306,7 @@ async function tryGetApps() {
     log("'getInstalledRelatedApps' is not available in this browser.");
   }
     
-  log("------","","Will try to identify installed apps via janky trick.");
+  // log("------","","Will try to identify installed apps via janky trick.");
 
   const prbApps = [
     {name:'WhatsApp', probe: 'whatsapp://send?text=hi', intent: 'intent://send/#Intent;package=com.whatsapp;scheme=whatsapp;end'},
@@ -303,14 +314,14 @@ async function tryGetApps() {
     // add others
   ];
 
-  prbApps.forEach(async (app) => {
-    const installed = await probeScheme(app.probe);
-    log(
-      `${app.name} is ${installed ? "" : "NOT "}installed`,
-    );
-  });
+  // prbApps.forEach(async (app) => {
+  //   const installed = await probeScheme(app.probe);
+  //   log(
+  //     `${app.name} is ${installed ? "" : "NOT "}installed`,
+  //   );
+  // });
 
-  log("Done probing for related apps.");
+  // log("Done probing for related apps.");
 }
 
 tryGetApps();
