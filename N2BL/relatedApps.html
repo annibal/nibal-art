@@ -220,7 +220,21 @@ async function tryGetApps() {
 
   try {
     const con = navigator.connection;
-    log(`🛜 Connection: ${con.saveData && "[Data Saver ON] "}${con.effectiveType}, ⬇️ ${con.downlink}, RTT ${con.rtt}`);
+    let conLog = [`🛜 Connection: `];
+    if ("saveData" in con && con.saveData) conLog.push("[Data Saver ON] ");
+    if ("effectiveType" in con) conLog.push(con.effectiveType + ", ");
+    if ("downlink" in con) {
+      const dnlnk = con.downlink;
+      if (dnlnk == 10) {
+        conLog.push(`Downlink: ${con.downlink}Mbps (browser might be hiding the real value), `);
+      } else {
+        conLog.push(`Downlink: ${con.downlink}Mbps, `);
+      }
+    }
+    if ("downlinkMax" in con) conLog.push(`Max Downlink: ${con.downlinkMax}Mbps, `);
+    if ("rtt" in con) conLog.push(`Round Trip Time (RTT): ${con.rtt} ms`);
+
+    log(conLog.join(""));
   } catch (e) {
     log("Failed to get Connection Data:", e);
   }
@@ -244,6 +258,7 @@ async function tryGetApps() {
   } catch (e) {
     log("Failed to get User Agent Data:", e);
   }
+  log("⌣⌢".repeat(8))
 
   if ('getInstalledRelatedApps' in navigator) {
     try {
