@@ -3,19 +3,26 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
     <title>N2BL - NibalAn</title>
     <link rel="stylesheet" href="/assets/nibol.css" />
     <script src="https://kit.fontawesome.com/40f0ec6d01.js" crossorigin="anonymous"></script>
     <script src="/assets/printObject.js"></script>
     
-    <script
-      src="https://s3.traki.io/traki.js"
-      tty-lvl="trace"
-      api_key="tk_mHywOQx1_01Ka19j5J5V88XB5vpA6jde63t"
-      campaign_id="8d9ea73c-1db9-4ae7-9d56-2a6549569d46"
-      base_url="http://localhost:8787/"
-    ></script>
+    <script>
+      document.head.appendChild( (() => {
+        const elm = document.createElement("script");
+        elm.setAttribute("data-tty-lvl", "trace");
+        elm.setAttribute("data-api_key", "tk_MHJWQkiy_01k968nhKaQkJY9819N9hG970Y");
+        elm.setAttribute("data-campaign_id", "8d9ea73c-1db9-4ae7-9d56-2a6549569d46");
+        const isDev = location.host.includes("localhost") || location.host.split(":")[1]?.length > 0;
+        elm.setAttribute("data-base-url", isDev ? "http://localhost:8787/" : "https://api.traki.io/");
+        elm.setAttribute("data-checkout-url", "*/hur/*");
+        elm.setAttribute("src", "/traki.js?v="+Date.now());
+        return elm;
+      })() )
+    </script>
+
   </head>
   <body>
     <section class="section" id="n2bl-index">

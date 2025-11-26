@@ -1,83 +1,149 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cat Dot Toy</title>
-  <style>
-    :root {
-      --bg: #111319;           /* plain body color */
-      --dot: #ff2f2f;          /* dot color */
-      --dot-size: 14px;        /* small/tiny dot */
-      --min-dur: 0.8;          /* seconds */
-      --max-dur: 3.5;          /* seconds */
-    }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cat Dot Toy</title>
+    <style>
+      :root {
+        --bg: #111319;           /* plain body color */
+        --dot: #eaff8a;          /* dot color */
+        --dot-size: 14px;        /* small/tiny dot */
+        --min-dur: 0.8;          /* seconds */
+        --max-dur: 3.5;          /* seconds */
+      }
 
-    * { box-sizing: border-box; }
+      @property --glow {
+        syntax: '<number>';
+        inherits: false;
+        initial-value: 30;
+      }
 
-    html, body { height: 100%; }
+      @property --flare {
+        syntax: '<number>';
+        inherits: false;
+        initial-value: 50;
+      }
 
-    body {
-      margin: 0;
-      width: 100dvw;           /* full screen */
-      height: 100dvh;          /* full screen */
-      background: var(--bg);
-      position: relative;
-      overflow: hidden;
-      user-select: none;
-    }
+      * { box-sizing: border-box; }
 
-    .dot {
-      position: absolute;
-      top: 0; left: 0;
-      width: var(--dot-size);
-      height: var(--dot-size);
-      border-radius: 50%;
-      /* slight highlight for a laser-pointer vibe */
-      background: radial-gradient(circle at 35% 35%, #fff 0 20%, var(--dot) 40% 100%);
-      transform: translate3d(0,0,0);
-      transition: transform var(--dur, 1.6s) linear;
-      will-change: transform;
-      pointer-events: none;    /* cat/human clicks won't block */
-      z-index: 1;
-    }
+      html, body { height: 100%; }
 
-    .controls {
-      position: fixed;
-      top: 12px; right: 12px;
-      display: flex; gap: 8px;
-      opacity: 0;               /* hidden by default */
-      transition: opacity .2s ease;
-      pointer-events: none;     /* ignore until visible */
-      z-index: 10;
-    }
+      body {
+        margin: 0;
+        width: 100dvw;           /* full screen */
+        height: 100dvh;          /* full screen */
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+        user-select: none;
+      }
 
-    /* show controls when hovering page, or when button focused */
-    body:hover .controls,
-    .controls:focus-within { opacity: 1; pointer-events: auto; }
+      .dot {
+        position: absolute;
+        top: 0; left: 0;
+        width: var(--dot-size);
+        height: var(--dot-size);
+        border-radius: 50%;
+        /* slight highlight for a laser-pointer vibe */
+        background: radial-gradient(circle at 35% 35%, #69ca60 0 20%, var(--dot) 40% 100%);
+        transform: translate3d(0,0,0);
+        transition: transform var(--dur, 1.6s) linear;
+        will-change: transform;
+        pointer-events: none;    /* cat/human clicks won't block */
+        z-index: 1;
 
-    button {
-      font: 600 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      padding: 10px 14px;
-      border: 0;
-      border-radius: 999px;
-      background: rgba(255,255,255,.12);
-      color: #fff;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 4px 16px rgba(0,0,0,.25);
-      cursor: pointer;
-    }
+        box-shadow: 
+          0 0 20px 5px rgb(255 255 255 / 50%),
+          0 0 60px 20px rgb(255 255 255 / 20%),
 
-    button:hover { background: rgba(255,255,255,.18); }
-    button:active { transform: translateY(1px); }
-  </style>
-  <script
-    src="https://s3.traki.io/traki.js"
-    tty-lvl="trace"
-    api_key="tk_mHywOQx1_01Ka19j5J5V88XB5vpA6jde63t"
-    campaign_id="8d9ea73c-1db9-4ae7-9d56-2a6549569d46"
-    base_url="http://localhost:8787/"
-  ></script>
+          calc(var(--dot-size) * var(--flare) / 100 * 0.5) 0 calc(var(--dot-size) * 1.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.80) ),
+          calc(var(--dot-size) * var(--flare) / 100 * 1.0) 0 calc(var(--dot-size) * 1.0) rgba(255,255,255, calc(var(--flare) / 100 * 0.60) ),
+          calc(var(--dot-size) * var(--flare) / 100 * 1.5) 0 calc(var(--dot-size) * 0.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.40) ),
+          calc(var(--dot-size) * var(--flare) / 100 * 2.0) 0 calc(var(--dot-size) * 0.2) rgba(255,255,255, calc(var(--flare) / 100 * 0.10) ),
+          calc(var(--dot-size) * var(--flare) / 100 * 2.5) 0 calc(var(--dot-size) * 0.1) rgba(255,255,255, calc(var(--flare) / 100 * 0.05) ),
+
+          calc(var(--dot-size) * var(--flare) / 100 * -0.5) 0 calc(var(--dot-size) * 1.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.80) ),
+          calc(var(--dot-size) * var(--flare) / 100 * -1.0) 0 calc(var(--dot-size) * 1.0) rgba(255,255,255, calc(var(--flare) / 100 * 0.60) ),
+          calc(var(--dot-size) * var(--flare) / 100 * -1.5) 0 calc(var(--dot-size) * 0.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.40) ),
+          calc(var(--dot-size) * var(--flare) / 100 * -2.0) 0 calc(var(--dot-size) * 0.2) rgba(255,255,255, calc(var(--flare) / 100 * 0.10) ),
+          calc(var(--dot-size) * var(--flare) / 100 * -2.5) 0 calc(var(--dot-size) * 0.1) rgba(255,255,255, calc(var(--flare) / 100 * 0.05) ),
+
+          0 calc(var(--dot-size) * var(--flare) / 100 * 0.5) calc(var(--dot-size) * 1.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.80) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * 1.0) calc(var(--dot-size) * 1.0) rgba(255,255,255, calc(var(--flare) / 100 * 0.60) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * 1.5) calc(var(--dot-size) * 0.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.40) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * 2.0) calc(var(--dot-size) * 0.2) rgba(255,255,255, calc(var(--flare) / 100 * 0.10) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * 2.5) calc(var(--dot-size) * 0.1) rgba(255,255,255, calc(var(--flare) / 100 * 0.05) ),
+
+          0 calc(var(--dot-size) * var(--flare) / 100 * -0.5) calc(var(--dot-size) * 1.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.80) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * -1.0) calc(var(--dot-size) * 1.0) rgba(255,255,255, calc(var(--flare) / 100 * 0.60) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * -1.5) calc(var(--dot-size) * 0.5) rgba(255,255,255, calc(var(--flare) / 100 * 0.40) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * -2.0) calc(var(--dot-size) * 0.2) rgba(255,255,255, calc(var(--flare) / 100 * 0.10) ),
+          0 calc(var(--dot-size) * var(--flare) / 100 * -2.5) calc(var(--dot-size) * 0.1) rgba(255,255,255, calc(var(--flare) / 100 * 0.05) ),
+
+          0 0 0 transparent;
+        ;
+        animation: glow-anim 13s linear 0s infinite,
+                   flare-anim 17s linear 0s infinite
+      }
+
+      @keyframes glow-anim {
+        0%   { --glow: 0;  }
+        40%  { --glow: 30; }
+        70%  { --glow: 40; }
+        100% { --glow: 0;  }
+      }
+
+      @keyframes flare-anim {
+        0%   { --flare: 0;  }
+        70%  { --flare: 0;  }
+        75%  { --flare: 0;  }
+        80%  { --glow: 100; }
+        100% { --glow: 0;   }
+      }
+
+      .controls {
+        position: fixed;
+        top: 12px; right: 12px;
+        display: flex; gap: 8px;
+        opacity: 0;               /* hidden by default */
+        transition: opacity .2s ease;
+        pointer-events: none;     /* ignore until visible */
+        z-index: 10;
+      }
+
+      /* show controls when hovering page, or when button focused */
+      body:hover .controls,
+      .controls:focus-within { opacity: 1; pointer-events: auto; }
+
+      button {
+        font: 600 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255,255,255,.12);
+        color: #fff;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 4px 16px rgba(0,0,0,.25);
+        cursor: pointer;
+      }
+
+      button:hover { background: rgba(255,255,255,.18); }
+      button:active { transform: translateY(1px); }
+    </style>
+    <script>
+      document.head.appendChild( (() => {
+        const elm = document.createElement("script");
+        elm.setAttribute("data-tty-lvl", "trace");
+        elm.setAttribute("data-api_key", "tk_MHJWQkiy_01k968nhKaQkJY9819N9hG970Y");
+        elm.setAttribute("data-campaign_id", "8d9ea73c-1db9-4ae7-9d56-2a6549569d46");
+        const isDev = location.host.includes("localhost") || location.host.split(":")[1]?.length > 0;
+        elm.setAttribute("data-base-url", isDev ? "http://localhost:8787/" : "https://api.traki.io/");
+        elm.setAttribute("data-checkout-url", "*/hur/*");
+        elm.setAttribute("src", "/traki.js?v="+Date.now());
+        return elm;
+      })() )
+    </script>
 </head>
 <body>
   <div class="dot" id="dot" aria-hidden="true"></div>
