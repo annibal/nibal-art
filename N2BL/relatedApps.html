@@ -213,7 +213,7 @@ async function tryGetApps() {
 
   try {
     const estimate = await navigator.storage.estimate();
-    log(`🗄️ Storage Estimate: ${(estimate.quota / 1024 / 1024).toFixed(2)}MB - ${~((estimate.usage / estimate.quota) *100).toFixed(2)}%`);
+    log(`🗄️ Storage Estimate: ${(estimate.quota / 1024 / 1024).toFixed(2)}MB, Quota: ${estimate.usage} | ${~((estimate.usage / estimate.quota) *100).toFixed(2)}%`);
   } catch (e) {
     log("Failed to get Storage Estimate:", e);
   }
