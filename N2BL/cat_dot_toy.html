@@ -84,7 +84,7 @@
           0 0 0 transparent;
         ;
         animation: glow-anim 13s linear 0s infinite,
-                   flare-anim 17s linear 0s infinite
+                   flare-anim 23s linear 0s infinite
       }
 
       @keyframes glow-anim {
@@ -96,9 +96,11 @@
 
       @keyframes flare-anim {
         0%   { --flare: 0;  }
-        70%  { --flare: 0;  }
-        75%  { --flare: 0;  }
+        70%  { --flare: 80;  }
+        75%  { --flare: 90;  }
         80%  { --glow: 100; }
+        85%  { --glow: 90; }
+        80%  { --glow: 80; }
         100% { --glow: 0;   }
       }
 
