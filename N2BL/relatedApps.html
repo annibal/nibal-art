@@ -195,7 +195,10 @@ async function tryGetApps() {
     log("Failed to get Vendor and VendorSub", e);
   }
   try {
-    const dnt = navigator.doNotTrack();
+    let dnt = navigator.doNotTrack;
+    if (typeof navigator.doNotTrack === "function") {
+      dnt = navigator.doNotTrack();
+    }
     if (dnt === "1" || dnt === "yes" || dnt === 1) {
       log(`⚙️ DNT: 1, Do Not Track`);
     } else if (dnt === "0" || dnt === "no" || dnt === 0) {
@@ -226,7 +229,7 @@ async function tryGetApps() {
     const battery = await navigator.getBattery();
     log(
       `🔋 Battery Info: ${battery.charging ? "Charging" : "Discharging"} at level ${battery.level}`,
-      `chargingTime: ${chargingTime}, dischargingTime: ${dischargingTime}`
+      `chargingTime: ${battery.chargingTime}, dischargingTime: ${battery.dischargingTime}`
     )
   } catch (e) {
     log("Failed to getBattery:", e);
