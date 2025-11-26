@@ -53,6 +53,60 @@
   resize: vertical;
   min-height: 150px;
   max-height: 85vh;
+  margin-top: 2rem;
+}
+
+#logs {
+  scrollbar-gutter: stable;
+}
+#logs::-webkit-scrollbar {
+  background-color: transparent;
+  width: 1rem;
+}
+#logs::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  background-color: rgb(13 63 38);
+}
+#logs::-webkit-scrollbar-track-piece {
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+
+
+#logs:hover::-webkit-scrollbar {
+  width: 16px;
+}
+#logs:hover::-webkit-scrollbar-thumb {
+  background-color: rgb(13 63 38);
+}
+#logs::-webkit-scrollbar-thumb:hover {
+  --s: 1rem; /* control the size*/
+  --c1: #001209;
+  --c2: #012814;
+  --c3: #003d1e;
+  background-color: #002211;
+  opacity: 1;
+  background-image: linear-gradient(0deg, #001209 0%, #001209 10%, #012814 10%, #012814 45%, #003d1e 45%, #003d1e 100%);
+  background-size: 23px 23px;
+}
+#logs::-webkit-scrollbar-track-piece:hover {
+  background-color: #001209;
+  opacity: 1;
+  background-image:
+    repeating-radial-gradient( circle at 0 0, transparent 0, #001209 23px ),
+    repeating-linear-gradient( #022a1655, #022a16 );
+}
+
+@media (hover: none) {
+  #logs::-webkit-scrollbar {
+    width: 1rem;
+  }
+  #logs::-webkit-scrollbar-thumb {
+    background-color: rgb(13 63 38);
+  }
 }
 
 #logs > p {
@@ -279,6 +333,15 @@ async function tryGetAllInfos() {
   try {
     log(`🌐 Languages: ${navigator.languages.join(", ")}`);
   } catch(e){ log("Failed Languages:", e); }
+  
+  try {
+    log("🌍 Intl Locale Info:");
+    const loc = new Intl.Locale(Intl.DateTimeFormat().resolvedOptions().locale);
+    log(`   ⤷ baseName: ${loc.baseName}`);
+    log(`   ⤷ calendar: ${loc.calendar}`);
+    log(`   ⤷ hourCycle: ${loc.hourCycle}`);
+    log(`   ⤷ numberingSystem: ${loc.numberingSystem}`);
+  } catch(e){ log("Intl.Locale failed:", e); }
 
   try {
     log(`🕒 Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
@@ -319,6 +382,10 @@ async function tryGetAllInfos() {
   } catch(e){ log("Failed Color Scheme:", e); }
 
   try {
+    log(`🌈 Screen Color Depth: ${screen.colorDepth}`);
+  } catch(e){ log("colorDepth failed:", e); }
+
+  try {
     log(`🎬 Reduced Motion: ${matchMedia("(prefers-reduced-motion: reduce)").matches ? "Reduce" : "Normal"}`);
   } catch(e){ log("Failed Reduced Motion:", e); }
 
@@ -354,6 +421,36 @@ async function tryGetAllInfos() {
     log(`🧩 Plugins:`); 
     for (const p of navigator.plugins) log(`   ⤷ ${p.name}`);
   } catch(e){ log("Failed Plugins:", e); }
+  
+  try {
+    log(`📄 PDF Viewer Enabled: ${navigator.pdfViewerEnabled}`);
+  } catch(e){ log("pdfViewerEnabled failed:", e); }
+
+  try {
+    log(`🤖 WebDriver (automation): ${navigator.webdriver === true}`);
+  } catch(e){ log("WebDriver failed:", e); }
+  
+  try {
+    if (performance.memory) {
+      log("🧠 Performance.memory:");
+      log(`   ⤷ jsHeapSizeLimit: ${performance.memory.jsHeapSizeLimit}`);
+      log(`   ⤷ totalJSHeapSize: ${performance.memory.totalJSHeapSize}`);
+      log(`   ⤷ usedJSHeapSize: ${performance.memory.usedJSHeapSize}`);
+    } else log("🧠 Performance.memory: Not supported");
+  } catch(e){ log("performance.memory failed:", e); }
+
+  try {
+    log("📊 Performance Event Counts:");
+    if (performance.eventCounts) {
+      performance.eventCounts.forEach((v,k)=>{
+        log(`   ⤷ ${k}: ${v}`);
+      });
+    } else log("   ⤷ Not supported");
+  } catch(e){ log("eventCounts failed:", e); }
+
+  try {
+    log(`👻 Document Prerendering: ${document.prerendering === true}`);
+  } catch(e){ log("prerendering failed:", e); }
 
   try {
     const canvas = document.createElement("canvas");
@@ -400,10 +497,37 @@ async function tryGetAllInfos() {
   } catch(e){ log("Constraints failed:", e); }
 
   try {
+    log("🎨 CSS Feature Support:");
+    const feats = [
+      "backdrop-filter: blur(5px)",
+      "display: grid",
+      "display: contents",
+      "aspect-ratio: 1/1",
+      "scrollbar-color: red blue",
+      "text-wrap: balance",
+      "animation-timeline: scroll()"
+    ];
+    feats.forEach(f => log(`   ⤷ ${f} => ${CSS.supports(f)}`));
+  } catch(e){ log("CSS.supports failed:", e); }
+
+  try {
+    log(`🧾 Adopted Stylesheets supported: ${"adoptedStyleSheets" in document}`);
+  } catch(e){ log("adoptedStyleSheets failed:", e); }
+
+  try {
     log("🎮 Gamepads:");
     const pads = navigator.getGamepads?.() || [];
     pads.forEach((p,i)=> p && log(`   ⤷ GP${i}: ${p.id}`));
   } catch(e){ log("Gamepads failed:", e); }
+  
+  try {
+    log("🎮 Gamepad State:");
+    const pads = navigator.getGamepads?.() || [];
+    pads.forEach((p,i)=>{
+      if (!p) return;
+      log(`   ⤷ GP${i}: id=${p.id}, buttons=${p.buttons.length}, axes=${p.axes.length}`);
+    });
+  } catch(e){ log("Gamepad detail failed:", e); }
 
   try {
     log("🎧 AudioContext entropy:");
@@ -449,6 +573,14 @@ async function tryGetAllInfos() {
     const vk = navigator.virtualKeyboard;
     log(`   ⤷ overlaysContent: ${vk?.overlaysContent}`);
   } catch(e){ log("VK failed:", e); }
+  
+  try {
+    log("🔌 Availability of device APIs:");
+    log(`   ⤷ USB: ${"usb" in navigator}`);
+    log(`   ⤷ HID: ${"hid" in navigator}`);
+    log(`   ⤷ Serial: ${"serial" in navigator}`);
+    log(`   ⤷ NFC: ${"nfc" in navigator}`);
+  } catch(e){ log("device-api checks failed:", e); }
 
   try {
     log("🔋 IdleDetector supported: " + ("IdleDetector" in window));
@@ -463,6 +595,55 @@ async function tryGetAllInfos() {
       log(`   ⤷ Features: ${[...adapter.features].join(", ")}`);
     } else log("`   ⤷ WebGPU unavailable");
   } catch(e){ log("WebGPU failed:", e); }
+
+  try {
+    if (navigator.gpu) {
+      log("🐉 WebGPU Limits:");
+      const adapter = await navigator.gpu.requestAdapter();
+      if (adapter) {
+        Object.entries(adapter.limits).forEach(([k,v])=>{
+          log(`   ⤷ ${k}: ${v}`);
+        });
+      } else log("   ⤷ No adapter");
+    } else {
+      log("🐉 WebGPU: Not supported");
+    }
+  } catch(e){ log("WebGPU limits failed:", e); }
+
+  try {
+    log(`🎞 Web Animations API supported: ${"animate" in Element.prototype}`);
+  } catch(e){ log("WAAPI failed:", e); }
+
+  try {
+    log("🕹 User Activation:");
+    log(`   ⤷ isActive: ${navigator.userActivation?.isActive}`);
+    log(`   ⤷ hasBeenActive: ${navigator.userActivation?.hasBeenActive}`);
+  } catch(e){ log("UserActivation failed:", e); }
+
+  try {
+    log(`✂ Intl.Segmenter supported: ${"Segmenter" in Intl}`);
+  } catch(e){ log("Segmenter failed:", e); }
+
+  try {
+    log(`🔒 Secure Context: ${window.isSecureContext}`);
+  } catch(e){ log("secureContext failed:", e); }
+
+  try {
+    log(`🛡 crossOriginIsolated: ${window.crossOriginIsolated}`);
+  } catch(e){ log("COI failed:", e); }
+
+  try {
+    log(`🪶 Trusted Types supported: ${"trustedTypes" in window}`);
+  } catch(e){ log("TrustedTypes failed:", e); }
+
+
+
+
+
+
+
+
+
 
   log("⌣⌢".repeat(8));
 
@@ -487,6 +668,7 @@ async function tryGetAllInfos() {
   } else {
     log("'getInstalledRelatedApps' is not available in this browser.");
   }
+
     
   // log("------","","Will try to identify installed apps via janky trick.");
 
