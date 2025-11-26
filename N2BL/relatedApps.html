@@ -151,6 +151,16 @@ async function probeScheme(uri, timeout = 1200) {
   });
 }
 
+function formatBytes(x, locale = "en") {
+  if (!Number.isFinite(x)) return "NaN";
+  const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+  const i = Math.floor(Math.log(x) / Math.log(1024));
+  const value = x / Math.pow(1024, i);
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2
+  }).format(value) + " " + units[i];
+}
+
 async function tryGetApps() {  
 
   try {
@@ -200,11 +210,11 @@ async function tryGetApps() {
       dnt = navigator.doNotTrack();
     }
     if (dnt === "1" || dnt === "yes" || dnt === 1) {
-      log(`⚙️ DNT: 1, Do Not Track`);
+      log(`⚙️ DoNotTrack: 1, Do Not Track`);
     } else if (dnt === "0" || dnt === "no" || dnt === 0) {
-      log(`⚙️ DNT: 0, Yes Track`);
+      log(`⚙️ DoNotTrack: 0, Yes Track`);
     } else {
-      log(`⚙️ DNT: ?, Unspecified`);
+      log(`⚙️ DoNotTrack: ?, Unspecified`);
     }
   } catch (e) {
     log("Failed to get Do Not Track value", e);
@@ -213,7 +223,11 @@ async function tryGetApps() {
 
   try {
     const estimate = await navigator.storage.estimate();
-    log(`🗄️ Storage Estimate: ${(estimate.quota / 1024 / 1024).toFixed(2)}MB, Quota: ${estimate.usage} | ${~((estimate.usage / estimate.quota) *100).toFixed(2)}%`);
+    const { quota, usage, usageDetails } = estimate;
+    const usagePc = ((usage / quota) * 100).toFixed(3) + "%";
+    const strQuota = formatBytes(quota);
+    const strUsage = formatBytes(usage);
+    log(`🗄️ Storage Estimate: Quota ${strQuota}, Usage: ${strUsage} | ${usagePc}`);
   } catch (e) {
     log("Failed to get Storage Estimate:", e);
   }
