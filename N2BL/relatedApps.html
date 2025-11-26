@@ -117,39 +117,6 @@ function log() {
   })());
 }
 
-// usage:
-// probeScheme('whatsapp://send?text=hi').then(installed => console.log(installed));
-async function probeScheme(uri, timeout = 1200) {
-  return new Promise(resolve => {
-    const t0 = Date.now();
-    let done = false;
-    const onVis = () => {
-      if (document.hidden) finish(true);
-    };
-    function finish(found) {
-      if (done) return;
-      done = true;
-      cleanup();
-      resolve(found);
-    }
-    const timer = setTimeout(()=> {
-      // if page didn't lose visibility, assume app not installed
-      finish(false);
-    }, timeout);
-    function cleanup() {
-      clearTimeout(timer);
-      document.removeEventListener('visibilitychange', onVis);
-    }
-    document.addEventListener('visibilitychange', onVis);
-    // attempt to open:
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    try { iframe.src = uri; } catch(e) { finish(false); }
-    // cleanup iframe in timeout or on finish
-    setTimeout(() => { iframe.remove(); }, timeout + 500);
-  });
-}
 
 function formatBytes(x, locale = "en") {
   if (!Number.isFinite(x)) return "NaN";
@@ -161,7 +128,9 @@ function formatBytes(x, locale = "en") {
   }).format(value) + " " + units[i];
 }
 
-async function tryGetApps() {  
+tryGetAllInfos();
+
+async function tryGetAllInfos() {  
 
   try {
     log(navigator.deviceMemory ? `💾 Device Memory: ${navigator.deviceMemory} GB` : "💾 Device Memory: Not available");
@@ -194,6 +163,13 @@ async function tryGetApps() {
   } catch (e) {
     log("Failed to get Max Touch Points:", e);
   }
+  try {
+    log("📡 Pointer Capabilities:");
+    log(` - hover: ${matchMedia("(hover: hover)").matches}`);
+    log(` - any-hover: ${matchMedia("(any-hover: hover)").matches}`);
+    log(` - pointer: ${matchMedia("(pointer: fine)").matches}`);
+    log(` - any-pointer: ${matchMedia("(any-pointer: fine)").matches}`);
+  } catch(e){ log("Pointer failed:", e); }
   try {
     log(`⚙️ Product: ${navigator.product} v${navigator.productSub}`);
   } catch (e) {
@@ -273,14 +249,220 @@ async function tryGetApps() {
 
   try {
     const uadata = navigator.userAgentData;
-    log(`🛠 User Agent Data: ${uadata.ismobile ? "Mobile" : "Desktop"}, ${uadata.platform}`);
+    log(`📛 User Agent Data: ${uadata.ismobile ? "Mobile" : "Desktop"}, ${uadata.platform}`);
     uadata.brands.forEach(brand => {
       log(` - ${brand.brand} v${brand.version}`);
     });
   } catch (e) {
-    log("Failed to get User Agent Data:", e);
+    try {
+      log(`📛 UserAgent (fallback): ${navigator.userAgent}`);
+    } catch (e) {
+      log("Failed to get User Agent Data:", e);
+    }
   }
+  try {
+    log("🧩 High Entropy UA:");
+    if (navigator.userAgentData?.getHighEntropyValues) {
+      const hi = await navigator.userAgentData.getHighEntropyValues(["architecture","model","platformVersion","fullVersionList"]);
+      log(JSON.stringify(hi, null, 2));
+    } else log(" - Not supported");
+  } catch(e){ log("UA entropy failed:", e); }
 
+  // try {
+  //   log("📋 Clipboard Types Supported:");
+  //   if (navigator.clipboard?.read) {
+  //     const items = await navigator.clipboard.read();
+  //     items.forEach((i,n)=> log(` - item[${n}] types: ${i.types.join(", ")}`));
+  //   } else log("Clipboard read not available");
+  // } catch(e){ log("Clipboard read failed:", e); }
+  
+  try {
+    log(`🌐 Languages: ${navigator.languages.join(", ")}`);
+  } catch(e){ log("Failed Languages:", e); }
+
+  try {
+    log(`🕒 Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+  } catch(e){ log("Failed Timezone:", e); }
+
+  try {
+    log(`📐 Screen: ${screen.width}x${screen.height} @${screen.pixelDepth}bit`);
+    log(`📐 Avail Screen: ${screen.availWidth}x${screen.availHeight}`);
+  } catch(e){ log("Failed Screen:", e); }
+
+  try {
+    log(`🪟 Viewport: ${window.innerWidth}x${window.innerHeight}`);
+    log(`🪟 Scrollbars: ${window.innerWidth - document.documentElement.clientWidth}px`);
+  } catch(e){ log("Failed Viewport:", e); }
+
+  try {
+    const ratio = window.devicePixelRatio;
+    log(`🔎 Pixel Ratio: ${ratio}`);
+  } catch(e){ log("Failed Pixel Ratio:", e); }
+
+  try {
+    log(`🧭 Orientation: ${(screen.orientation || {}).type}`);
+  } catch(e){ log("Failed Orientation:", e); }
+  
+  try {
+    log("🖼 Fullscreen API:");
+    log(` - enabled: ${document.fullscreenEnabled}`);
+  } catch(e){ log("Fullscreen failed:", e); }
+
+  try {
+    log("📱 Form-Factors:");
+    log(` - prefers-contrast more: ${matchMedia("(prefers-contrast: more)").matches}`);
+    log(` - forced-colors active: ${matchMedia("(forced-colors: active)").matches}`);
+  } catch(e){ log("Form-factor failed:", e); }
+
+  try {
+    log(`🎨 Color Scheme: ${matchMedia("(prefers-color-scheme: dark)").matches ? "Dark" : "Light"}`);
+  } catch(e){ log("Failed Color Scheme:", e); }
+
+  try {
+    log(`🎬 Reduced Motion: ${matchMedia("(prefers-reduced-motion: reduce)").matches ? "Reduce" : "Normal"}`);
+  } catch(e){ log("Failed Reduced Motion:", e); }
+
+  try {
+    log("🎨 HDR Support:");
+    log(` - color-gamut p3: ${matchMedia("(color-gamut: p3)").matches}`);
+    log(` - color-gamut rec2020: ${matchMedia("(color-gamut: rec2020)").matches}`);
+  } catch(e){ log("HDR failed:", e); }
+
+  try {
+    log(`🖥 Platform: ${navigator.platform}`);
+  } catch(e){ log("Failed Platform:", e); }
+
+  try {
+    const perms = ["geolocation","notifications","clipboard-read","clipboard-write","camera","microphone","bluetooth","background-sync","gyroscope","accelerometer","magnetometer"];
+    for (const p of perms) {
+      try {
+        const q = await navigator.permissions.query({name:p});
+        logs.push(`${p}: ${q.state}`);
+      } catch (err) {
+        logs.push(`${p}: Failed with error ${e}`);
+      }
+    }
+    log("🔐 Permissions dump: " + logs.join(", "));
+  } catch(e){ log("Permissions failed:", e); }
+
+  try {
+    log(`📄 MIME Types:`); 
+    for (const m of navigator.mimeTypes) log(` - ${m.type}`);
+  } catch(e){ log("Failed MIME Types:", e); }
+
+  try {
+    log(`🧩 Plugins:`); 
+    for (const p of navigator.plugins) log(` - ${p.name}`);
+  } catch(e){ log("Failed Plugins:", e); }
+
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (gl) {
+      const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+      const vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : "N/A";
+      const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "N/A";
+      log(`🎮 GPU Vendor: ${vendor}`);
+      log(`🎮 GPU Renderer: ${renderer}`);
+    } else {
+      log("🎮 WebGL unavailable");
+    }
+  } catch(e){ log("Failed WebGL:", e); }
+
+  try {
+    log("🕹 WebGL2 Info:");
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2");
+    if (gl) {
+      const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+      log(` - Renderer: ${dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "N/A"}`);
+      log(` - Vendor: ${dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : "N/A"}`);
+      log(` - Max Texture Size: ${gl.getParameter(gl.MAX_TEXTURE_SIZE)}`);
+      log(` - Max Vertex Textures: ${gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS)}`);
+      log(` - Extensions: ${gl.getSupportedExtensions().join(", ")}`);
+    } else log(" - WebGL2 unavailable");
+  } catch(e){ log("WebGL2 failed:", e); }
+
+  try {
+    log(`🌍 Do Not Disturb (approx): ${matchMedia("(prefers-reduced-motion: reduce)").matches}`);
+  } catch(e){ log("Failed:", e); }
+
+  try {
+    log("🎥 Media Devices:");
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    devs.forEach(d => log(` - ${d.kind}: ${d.deviceId} (${d.label || "no-label"})`));
+  } catch(e){ log("MediaDevices failed:", e); }
+
+  try {
+    log("🔧 Supported Constraints:");
+    const c = navigator.mediaDevices.getSupportedConstraints();
+    Object.keys(c).forEach(k => log(` - ${k}: ${c[k]}`));
+  } catch(e){ log("Constraints failed:", e); }
+
+  try {
+    log("🎮 Gamepads:");
+    const pads = navigator.getGamepads?.() || [];
+    pads.forEach((p,i)=> p && log(` - GP${i}: ${p.id}`));
+  } catch(e){ log("Gamepads failed:", e); }
+
+  try {
+    log("🎧 AudioContext entropy:");
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const analyser = ctx.createAnalyser();
+    osc.connect(analyser);
+    osc.start(0);
+    const arr = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(arr);
+    log(` - Audio hash: ${arr.slice(0,16).join(",")}`);
+    osc.stop();
+  } catch(e){ log("Audio failed:", e); }
+
+  try {
+    log("🖌 Canvas fingerprint:");
+    const c = document.createElement("canvas");
+    const g = c.getContext("2d");
+    g.textBaseline = "top";
+    g.font = "14px 'Arial'";
+    g.fillStyle = "#f60";
+    g.fillText("fingerprinting", 2, 2);
+    const url = c.toDataURL();
+    log(` - Canvas hash: ${btoa(url).slice(0,32)}`);
+  } catch(e){ log("Canvas failed:", e); }
+
+  try {
+    log("🔍 Zoom Level:");
+    log(` - devicePixelRatio: ${window.devicePixelRatio}`);
+    log(` - estimated zoom: ${(window.outerWidth / window.innerWidth).toFixed(2)}`);
+  } catch(e){ log("Zoom failed:", e); }
+
+  try {
+    log("🅰 Font Enumeration (if supported):");
+    if ('fonts' in navigator && navigator.fonts.query) {
+      const fonts = await navigator.fonts.query();
+      for await (const f of fonts) log(` - ${f.postscriptName}`);
+    } else log(" - Not supported");
+  } catch(e){ log("Fonts failed:", e); }
+
+  try {
+    log("⌨ Virtual Keyboard:");
+    const vk = navigator.virtualKeyboard;
+    log(` - overlaysContent: ${vk?.overlaysContent}`);
+  } catch(e){ log("VK failed:", e); }
+
+  try {
+    log("🔋 IdleDetector supported: " + ("IdleDetector" in window));
+  } catch(e){ log("IdleDetector failed:", e); }
+
+  try {
+    log("🐉 WebGPU:");
+    if (navigator.gpu) {
+      const adapter = await navigator.gpu.requestAdapter();
+      log(` - Vendor: ${adapter.vendor}`);
+      log(` - Architecture: ${adapter.architecture}`);
+      log(` - Features: ${[...adapter.features].join(", ")}`);
+    } else log(" - WebGPU unavailable");
+  } catch(e){ log("WebGPU failed:", e); }
 
   log("⌣⌢".repeat(8));
 
@@ -322,9 +504,42 @@ async function tryGetApps() {
   // });
 
   // log("Done probing for related apps.");
+  
+  // // usage:
+  // // probeScheme('whatsapp://send?text=hi').then(installed => console.log(installed));
+  // async function probeScheme(uri, timeout = 1200) {
+  //   return new Promise(resolve => {
+  //     const t0 = Date.now();
+  //     let done = false;
+  //     const onVis = () => {
+  //       if (document.hidden) finish(true);
+  //     };
+  //     function finish(found) {
+  //       if (done) return;
+  //       done = true;
+  //       cleanup();
+  //       resolve(found);
+  //     }
+  //     const timer = setTimeout(()=> {
+  //       // if page didn't lose visibility, assume app not installed
+  //       finish(false);
+  //     }, timeout);
+  //     function cleanup() {
+  //       clearTimeout(timer);
+  //       document.removeEventListener('visibilitychange', onVis);
+  //     }
+  //     document.addEventListener('visibilitychange', onVis);
+  //     // attempt to open:
+  //     const iframe = document.createElement('iframe');
+  //     iframe.style.display = 'none';
+  //     document.body.appendChild(iframe);
+  //     try { iframe.src = uri; } catch(e) { finish(false); }
+  //     // cleanup iframe in timeout or on finish
+  //     setTimeout(() => { iframe.remove(); }, timeout + 500);
+  //   });
+  // }
 }
 
-tryGetApps();
     </script>
   </body>
 </html>
