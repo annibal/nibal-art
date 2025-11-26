@@ -646,6 +646,7 @@ async function tryGetAllInfos() {
 
 
   log("⌣⌢".repeat(8));
+  Array(8).fill("\n").forEach(lb => log(lb));
 
 
   if ('getInstalledRelatedApps' in navigator) {
