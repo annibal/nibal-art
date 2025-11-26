@@ -305,13 +305,13 @@ async function tryGetAllInfos() {
   
   try {
     log("🖼 Fullscreen API:");
-    log(` - enabled: ${document.fullscreenEnabled}`);
+    log(`   ⤷ enabled: ${document.fullscreenEnabled}`);
   } catch(e){ log("Fullscreen failed:", e); }
 
   try {
     log("📱 Form-Factors:");
-    log(` - prefers-contrast more: ${matchMedia("(prefers-contrast: more)").matches}`);
-    log(` - forced-colors active: ${matchMedia("(forced-colors: active)").matches}`);
+    log(`   ⤷ prefers-contrast more: ${matchMedia("(prefers-contrast: more)").matches}`);
+    log(`   ⤷ forced-colors active: ${matchMedia("(forced-colors: active)").matches}`);
   } catch(e){ log("Form-factor failed:", e); }
 
   try {
@@ -324,8 +324,8 @@ async function tryGetAllInfos() {
 
   try {
     log("🎨 HDR Support:");
-    log(` - color-gamut p3: ${matchMedia("(color-gamut: p3)").matches}`);
-    log(` - color-gamut rec2020: ${matchMedia("(color-gamut: rec2020)").matches}`);
+    log(`   ⤷ color-gamut p3: ${matchMedia("(color-gamut: p3)").matches}`);
+    log(`   ⤷ color-gamut rec2020: ${matchMedia("(color-gamut: rec2020)").matches}`);
   } catch(e){ log("HDR failed:", e); }
 
   try {
@@ -347,12 +347,12 @@ async function tryGetAllInfos() {
 
   try {
     log(`📄 MIME Types:`); 
-    for (const m of navigator.mimeTypes) log(` - ${m.type}`);
+    for (const m of navigator.mimeTypes) log(`   ⤷ ${m.type}`);
   } catch(e){ log("Failed MIME Types:", e); }
 
   try {
     log(`🧩 Plugins:`); 
-    for (const p of navigator.plugins) log(` - ${p.name}`);
+    for (const p of navigator.plugins) log(`   ⤷ ${p.name}`);
   } catch(e){ log("Failed Plugins:", e); }
 
   try {
@@ -375,11 +375,11 @@ async function tryGetAllInfos() {
     const gl = canvas.getContext("webgl2");
     if (gl) {
       const dbg = gl.getExtension("WEBGL_debug_renderer_info");
-      log(` - Renderer: ${dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "N/A"}`);
-      log(` - Vendor: ${dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : "N/A"}`);
-      log(` - Max Texture Size: ${gl.getParameter(gl.MAX_TEXTURE_SIZE)}`);
-      log(` - Max Vertex Textures: ${gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS)}`);
-      log(` - Extensions: ${gl.getSupportedExtensions().join(", ")}`);
+      log(`   ⤷ Renderer: ${dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "N/A"}`);
+      log(`   ⤷ Vendor: ${dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : "N/A"}`);
+      log(`   ⤷ Max Texture Size: ${gl.getParameter(gl.MAX_TEXTURE_SIZE)}`);
+      log(`   ⤷ Max Vertex Textures: ${gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS)}`);
+      log(`   ⤷ Extensions: ${gl.getSupportedExtensions().join(", ")}`);
     } else log(" - WebGL2 unavailable");
   } catch(e){ log("WebGL2 failed:", e); }
 
@@ -390,19 +390,19 @@ async function tryGetAllInfos() {
   try {
     log("🎥 Media Devices:");
     const devs = await navigator.mediaDevices.enumerateDevices();
-    devs.forEach(d => log(` - ${d.kind}: ${d.deviceId} (${d.label || "no-label"})`));
+    devs.forEach(d => log(`   ⤷ ${d.kind}: ${d.deviceId} (${d.label || "no-label"})`));
   } catch(e){ log("MediaDevices failed:", e); }
 
   try {
     log("🔧 Supported Constraints:");
     const c = navigator.mediaDevices.getSupportedConstraints();
-    Object.keys(c).forEach(k => log(` - ${k}: ${c[k]}`));
+    Object.keys(c).forEach(k => log(`   ⤷ ${k}: ${c[k]}`));
   } catch(e){ log("Constraints failed:", e); }
 
   try {
     log("🎮 Gamepads:");
     const pads = navigator.getGamepads?.() || [];
-    pads.forEach((p,i)=> p && log(` - GP${i}: ${p.id}`));
+    pads.forEach((p,i)=> p && log(`   ⤷ GP${i}: ${p.id}`));
   } catch(e){ log("Gamepads failed:", e); }
 
   try {
@@ -414,7 +414,7 @@ async function tryGetAllInfos() {
     osc.start(0);
     const arr = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(arr);
-    log(` - Audio hash: ${arr.slice(0,16).join(",")}`);
+    log(`   ⤷ Audio hash: ${arr.slice(0,16).join(",")}`);
     osc.stop();
   } catch(e){ log("Audio failed:", e); }
 
@@ -427,27 +427,27 @@ async function tryGetAllInfos() {
     g.fillStyle = "#f60";
     g.fillText("fingerprinting", 2, 2);
     const url = c.toDataURL();
-    log(` - Canvas hash: ${btoa(url).slice(0,32)}`);
+    log(`   ⤷ Canvas hash: ${btoa(url).slice(0,32)}`);
   } catch(e){ log("Canvas failed:", e); }
 
   try {
     log("🔍 Zoom Level:");
-    log(` - devicePixelRatio: ${window.devicePixelRatio}`);
-    log(` - estimated zoom: ${(window.outerWidth / window.innerWidth).toFixed(2)}`);
+    log(`   ⤷ devicePixelRatio: ${window.devicePixelRatio}`);
+    log(`   ⤷ estimated zoom: ${(window.outerWidth / window.innerWidth).toFixed(2)}`);
   } catch(e){ log("Zoom failed:", e); }
 
   try {
     log("🅰 Font Enumeration (if supported):");
     if ('fonts' in navigator && navigator.fonts.query) {
       const fonts = await navigator.fonts.query();
-      for await (const f of fonts) log(` - ${f.postscriptName}`);
+      for await (const f of fonts) log(`   ⤷ ${f.postscriptName}`);
     } else log(" - Not supported");
   } catch(e){ log("Fonts failed:", e); }
 
   try {
     log("⌨ Virtual Keyboard:");
     const vk = navigator.virtualKeyboard;
-    log(` - overlaysContent: ${vk?.overlaysContent}`);
+    log(`   ⤷ overlaysContent: ${vk?.overlaysContent}`);
   } catch(e){ log("VK failed:", e); }
 
   try {
@@ -458,9 +458,9 @@ async function tryGetAllInfos() {
     log("🐉 WebGPU:");
     if (navigator.gpu) {
       const adapter = await navigator.gpu.requestAdapter();
-      log(` - Vendor: ${adapter.vendor}`);
-      log(` - Architecture: ${adapter.architecture}`);
-      log(` - Features: ${[...adapter.features].join(", ")}`);
+      log(`   ⤷ Vendor: ${adapter.vendor}`);
+      log(`   ⤷ Architecture: ${adapter.architecture}`);
+      log(`   ⤷ Features: ${[...adapter.features].join(", ")}`);
     } else log(" - WebGPU unavailable");
   } catch(e){ log("WebGPU failed:", e); }
 
