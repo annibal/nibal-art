@@ -406,7 +406,7 @@ async function tryGetAllInfos() {
         const q = await navigator.permissions.query({name:p});
         logs.push(`${p}: ${q.state}`);
       } catch (err) {
-        logs.push(`${p}: Failed with error ${e}`);
+        logs.push(`${p}: Failed with error ${err}`);
       }
     }
     log("🔐 Permissions dump: " + logs.join(", "));
