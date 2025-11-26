@@ -240,7 +240,7 @@ async function tryGetApps() {
     if ("downlink" in con) {
       const dnlnk = con.downlink;
       if (dnlnk == 10) {
-        conLog.push(`Downlink: ${con.downlink}Mbps (browser might be hiding the real value), `);
+        conLog.push(`Downlink: ${con.downlink}Mbps (likely browser obfuscated), `);
       } else {
         conLog.push(`Downlink: ${con.downlink}Mbps, `);
       }
