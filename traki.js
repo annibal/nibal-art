@@ -13,6 +13,7 @@ const STORAGE_KEYS = Object.freeze({
     SESSION_START: "TRAKI_SESSION_START",
     CHECKOUT_URL: "TRAKI_CHECKOUT_URL",
     UTM_SOURCE: "TRAKI_UTM_SOURCE",
+    TTY_LVL: "TRAKI_TTY_LVL",
 });
 /**
  * External Input Params Sources
@@ -88,7 +89,7 @@ const EIP_CONFIG = {
     TTY_LEVEL: {
         storageKey: "",
         defaultValue: "none",
-        availableSourcesSorted: [X.URL_PARAMS, X.THIS_SCRIPT],
+        availableSourcesSorted: [X.URL_PARAMS, X.SESSION_STORAGE, X.LOCAL_STORAGE, X.THIS_SCRIPT],
         nameWords: ["tty", "lvl"]
     },
     CHECKOUT_URL: {
@@ -501,18 +502,21 @@ function parseUtmSource(fromSearch) {
         const utmSource = urlParams.get(UTM_SOURCE_ID_PARAM);
         if (!utmSource) {
             log_trkiout.debug('No utm_source found in URL', location.href, { UTM_SOURCE_ID_PARAM: UTM_SOURCE_ID_PARAM, baseSearch });
+            log_trkiout.groupEnd();
             return null;
         }
         // Parse format: trace_id::api_key
         const parts = utmSource.split('::');
         if (parts.length !== 2) {
             log_trkiout.warn(`Invalid utm_source format: ${utmSource} (expected: trace_id::api_key)`);
+            log_trkiout.groupEnd();
             return null;
         }
         const [traceId, apiKey] = parts;
         // Basic validation
         if (!traceId || !apiKey) {
             log_trkiout.warn(`Invalid utm_source parts: trace_id="${traceId}", api_key="${apiKey}"`);
+            log_trkiout.groupEnd();
             return null;
         }
         // URL decode in case it's encoded
@@ -838,20 +842,22 @@ class _ParamSource {
     } }
     // console levels
     getCanTTY(argLogLevel) {
-        let logLevel = argLogLevel;
-        if (typeof logLevel === "string") {
-            logLevel = TTY_LEVELS[logLevel];
+        // @ts-ignore
+        if (true) {
+            return true;
         }
-        if (isNaN(+logLevel) || logLevel == null) {
-            internalDebug(`Attemp to check if can log invalid log level '${logLevel}'`);
-            return false;
-        }
-        const canLog = this.ttylvl >= logLevel;
-        if (!canLog) {
-            internalDebug(`Attempt to log '${logLevel}' denied, current ttyLvl: '${this.ttylvl}'.`);
-            return false;
-        }
-        return true;
+        // removed by dead control flow
+
+        // removed by dead control flow
+
+        // removed by dead control flow
+
+        // removed by dead control flow
+
+        // removed by dead control flow
+
+        // removed by dead control flow
+
     }
     static _instance;
     static get instance() {
@@ -1022,44 +1028,43 @@ function sleep(ms) {
  * Debug function for when trkiout isnt available
  */
 function internalDebugGroup(open, label) {
-    // TODO: if (SOME_GLOBAL_ENVIRONMENT_FLAG_OR_WHATEVER) { console.debug(...arguments); }
-    try {
-        if (open) {
-            // console.log(">>> " + (open ? "open" : "close") +  " " + label);
-            console.groupCollapsed(label);
-        }
-        else {
-            console.groupEnd();
-            // console.log(">>> " + (open ? "open" : "close") +  " " + label);
-        }
+    // @ts-ignore
+    if (true) {
+        return;
     }
-    catch (e) {
-        console.error(e);
-    }
+    // removed by dead control flow
+
 }
 /**
  * Debug function for when trkiout isnt available
  */
 function internalDebug(...args) {
-    // TODO: if (SOME_GLOBAL_ENVIRONMENT_FLAG_OR_WHATEVER) { console.debug(...arguments); }
-    let inDebugSign = "%c[IN-DEBUG]%c";
-    let argumentZero = args[0];
-    let restArgs = args.slice(1);
-    let finalArgs = [];
-    let isArg0vip = false;
-    if (typeof argumentZero === "string") {
-        argumentZero = `${inDebugSign} ${argumentZero}`;
+    // @ts-ignore
+    if (true) {
+        return;
     }
-    else {
-        finalArgs = [inDebugSign, argumentZero, restArgs];
-        isArg0vip = true;
-    }
-    const style = "color:#3c3c3c; background:#BCD; padding:1px 4px; border-radius:4px; font-weight:600; letter-spacing:0.5px;";
-    finalArgs = [...(isArg0vip ? [inDebugSign] : []), argumentZero, style, "", restArgs];
-    let strCrumb = "";
-    if (false) // removed by dead control flow
-{}
-    console.debug(...finalArgs);
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
+    // removed by dead control flow
+
 }
 /**
  * Gets a debounced version of a function.
@@ -1297,9 +1302,15 @@ function compileUrlPatterns(patternList) {
     }
 }
 function matchUrlPatterns(compiled, url) {
-    for (const re of compiled)
-        if (re.test(url))
+    for (let idx = 0; idx < compiled.length; idx++) {
+        const re = compiled[idx];
+        log_trkiout.debug(`Testing "${url}" with RegExp Pattern ${idx} of ${compiled.length}: "${re.source}", flags ${re.flags}`);
+        if (re.test(url)) {
+            log_trkiout.debug(`RegExp Pattern ${idx} "${re.source}" matched URL, URL is checkout URL.`);
             return true;
+        }
+    }
+    log_trkiout.debug(`no RegExp Pattern matched URL "${url}", URL is NOT checkout URL.`);
     return false;
 }
 
@@ -1324,7 +1335,7 @@ function listenOutbounds(urlEventParams) {
     listenToSubmit(urlEventParams);
     listenToPopState(urlEventParams);
     listenToUnload(urlEventParams);
-    listenToNavigate(urlEventParams);
+    // listenToNavigate(urlEventParams);
     log_trkiout.groupEnd();
 }
 // #region Observer
@@ -1498,7 +1509,7 @@ function listenToUnload({ getFinalURL, dispatchEvent }) {
 // #region Evt_Unload
 //
 function listenToNavigate({ getFinalURL, dispatchEvent }) {
-    log_trkiout.debug(`Will listen to navgation events`);
+    trkiout.debug(`Will listen to navgation events`);
     // polyfill();
     if (window.navigation)
         return listenToNavigation();
@@ -1506,10 +1517,10 @@ function listenToNavigate({ getFinalURL, dispatchEvent }) {
     function listenToNavigation() {
         let lastURL;
         window.navigation?.addEventListener("navigate", (event) => {
-            log_trkiout.log("an Navigate event happened", event, event.destination.url, lastURL);
+            trkiout.log("an Navigate event happened", event, event.destination.url, lastURL);
             const navigation = window.navigation;
             if (!event?.destination?.url) {
-                log_trkiout.debug(`Navigation event has no destination URL.`);
+                trkiout.debug(`Navigation event has no destination URL.`);
                 return;
             }
             ;
@@ -1517,21 +1528,21 @@ function listenToNavigate({ getFinalURL, dispatchEvent }) {
                 event.destination.url = event?.destination?.url?.href ?? event?.destination?.url;
             }
             catch (e) {
-                log_trkiout.debug(`Error trying to get navigation event's destination URL value.`);
+                trkiout.debug(`Error trying to get navigation event's destination URL value.`);
             }
             if (lastURL == event.destination.url) {
-                log_trkiout.debug(`Event's destination URL is already patched.`);
+                trkiout.debug(`Event's destination URL is already patched.`);
                 return;
             }
             ;
             event.preventDefault();
-            log_trkiout.debug(`Prevented original navigation`);
+            trkiout.debug(`Prevented original navigation`);
             const url = getFinalURL(event.destination.url);
             // dispatchEvent(url, "Navigate"+event.navigationType)
             const shouldRefresh = !event.destination.sameDocument;
             lastURL = url;
             if (shouldRefresh) {
-                log_trkiout.debug(`Will navigate to patched url`);
+                trkiout.debug(`Will navigate to patched url`);
                 return navigation.navigate(url, {
                     history: event.navigationType === 'push'
                         ? 'push'
@@ -1539,12 +1550,12 @@ function listenToNavigate({ getFinalURL, dispatchEvent }) {
                 });
             }
             else {
-                log_trkiout.debug(`Navigation destiny is same document, will pushState instead`);
+                trkiout.debug(`Navigation destiny is same document, will pushState instead`);
             }
             history.pushState({}, '', url);
         });
     }
-    log_trkiout.debug(`Listener for Navigation Events deployed`);
+    trkiout.debug(`Listener for Navigation Events deployed`);
 }
 //
 // #endregion Evt_Unload
@@ -2129,6 +2140,9 @@ async function createTrace() {
     }
     log_trkiout.log(`doRequest('traces') response: `, res.data);
     let createdTraceId = res.data?.trace?.id;
+    if (!createdTraceId) {
+        createdTraceId = res.data?.id;
+    }
     // @ts-ignore
     // if (!createdTraceId) { createdTraceId = res.data?.data?.trace?.id; }
     try {
@@ -2192,6 +2206,7 @@ catch (e) { }
 // - window.open
 // - form submit
 // - redirect
+traki();
 async function traki() {
     // get params from first source where they're available
     const config = inputSourceSelect.asObject();
@@ -2207,8 +2222,8 @@ async function traki() {
         "└┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┘"
     ].join("\n "));
     // @ts-ignore
-    const trakiVersion = "1.2.0";
-    log_trkiout.debug(`TRAKI Version "${trakiVersion}"\n\n`);
+    const trakiVersion = "1.11.0";
+    console.log(`TRAKI Version "${trakiVersion}"\n\n`);
     // log params at first bootstrap
     log_trkiout.groupCollapsed("Param Source Values");
     log_trkiout.log(`*apiKey:      "${config.apiKey}"`);
@@ -2255,6 +2270,7 @@ async function traki() {
     updateStorageIfChanged(STORAGE_KEYS.BASE_URL, config.baseUrl);
     updateStorageIfChanged(STORAGE_KEYS.TRACE_ID, config.traceId);
     updateStorageIfChanged(STORAGE_KEYS.CHECKOUT_URL, config.checkoutUrl);
+    updateStorageIfChanged(STORAGE_KEYS.TTY_LVL, config.ttyLevel);
     log_trkiout.groupEnd();
     let checkoutUrlRegExes = [];
     let checkoutUrlStrings = [];
@@ -2264,22 +2280,43 @@ async function traki() {
         log_trkiout.debug("Configured matcher for checkout URL");
     }
     function isNavigatingToCheckout(url) {
-        if (config.checkoutUrl) {
-            let matched = matchUrlPatterns(checkoutUrlRegExes, url);
+        let matched = false;
+        if (url) {
+            // regex
+            matched = matchUrlPatterns(checkoutUrlRegExes, url);
             if (!matched) {
-                if (checkoutUrlStrings.some(str => config.checkoutUrl.includes(str) || config.checkoutUrl === str)) {
-                    log_trkiout.debug(`URL ${url} matched as CHECKOUT url`);
+                log_trkiout.debug(`Patterns did not recognize ${url} as CHECKOUT url`);
+                const matchedPurStr = checkoutUrlStrings.some((str, strIdx) => {
+                    log_trkiout.debug(`Checking if URL "${url}" includes string pattern ${strIdx} of ${checkoutUrlStrings.length} "${str}".`);
+                    if (url.includes(str)) {
+                        log_trkiout.debug(`URL does include the string pattern "${str}", URL is checkout URL`);
+                        return true;
+                    }
+                    log_trkiout.debug(`URL does not contain string pattern. Checking if URL matches full string "${str}"`);
+                    if (url === str) {
+                        log_trkiout.debug(`URL matches "${str}" exactly, URL is checkout URL`);
+                        return true;
+                    }
+                    log_trkiout.debug(`URL does not match "${str}" nor contains it, not a checkout URL.`);
+                });
+                if (matchedPurStr) {
                     matched = true;
                 }
             }
         }
-        log_trkiout.debug(`URL ${url} isn't for checkout`);
-        return false;
+        if (!matched) {
+            log_trkiout.debug(`URL "${url}" isn't for checkout`);
+        }
+        return matched;
     }
     const urlEventsParam = {
         getFinalURL: getFinalURL,
         dispatchEvent: async function eventDispatcher(specificEventName, urlBeforeUtm, metadataParams) {
-            log_trkiout.groupCollapsed(`Dispatch Event '${specificEventName}'`);
+            log_trkiout.debug(`Dispatch Event '${specificEventName}'`);
+            if (specificEventName === "BeforeUnload" || specificEventName === "OnUnload") {
+                log_trkiout.log(`Unload Events not supported yet, skipping event dispatch`);
+                return;
+            }
             let url = urlBeforeUtm ? (urlBeforeUtm instanceof URL ? urlBeforeUtm.toString() : String(urlBeforeUtm)) : "";
             if (!url) {
                 log_trkiout.trace("Dispatch Event invoked with empty URL");
@@ -2299,7 +2336,7 @@ async function traki() {
             catch (error) {
                 log_trkiout.error(`Failed to send ${evtName} event:`, error);
             }
-            log_trkiout.groupEnd();
+            // trkiout.groupEnd();
         }
     };
     log_trkiout.groupCollapsed("Patch, Listen and Set own UTM source");
@@ -2393,7 +2430,6 @@ function updateStorageIfChanged(key, newValue) {
 //   // TODO: onFormSubmit
 // }
 // // -------------------------------------
-traki();
 
 /******/ })()
 ;

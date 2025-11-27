@@ -280,15 +280,14 @@ async function tryGetAllInfos() {
 
     log(conLog.join(""));
   } catch (e) {
-    log("Failed to get Connection Data:", e);
+    log("Failed to get Navigator Connection Data:", e);
   }
   
   try {
-    const btPermission = await navigator.permissions.query({ name: "bluetooth" });
     const btAvailability = await navigator.bluetooth.getAvailability();
-    log(`ᚼᛒ Bluetooth: Permission ${btPermission ? '✅' : '❌'}, Availability ${btAvailability ? '✅' : '❌'}, `)
+    log(`ᚼᛒ Bluetooth Availability ${btAvailability ? '✅' : '❌'}, `)
   } catch (e) {
-    log("Failed to get Connection Data:", e);
+    log("Failed to get Bluetooth Availability:", e);
   }
 
   try {
@@ -317,8 +316,18 @@ async function tryGetAllInfos() {
   try {
     log("🧩 High Entropy UA:");
     if (navigator.userAgentData?.getHighEntropyValues) {
-      const hi = await navigator.userAgentData.getHighEntropyValues(["architecture","model","platformVersion","fullVersionList"]);
-      log(JSON.stringify(hi, null, 2));
+      try {
+        const hiFull = await navigator.userAgentData.getHighEntropyValues([
+          "fullVersionList", "wow64", "uaFullVersion", "bitness",
+          "platformVersion", "model", "architecture", "formFactors",
+        ])
+      } catch (ee) {
+        const hi = await navigator.userAgentData.getHighEntropyValues([
+          "architecture", "model",
+          "platformVersion", "fullVersionList",
+        ]);
+        log(JSON.stringify(hi, null, 2));
+      }
     } else log("   ⤷ Not supported");
   } catch(e){ log("UA entropy failed:", e); }
 
@@ -400,16 +409,42 @@ async function tryGetAllInfos() {
   } catch(e){ log("Failed Platform:", e); }
 
   try {
-    const perms = ["geolocation","notifications","clipboard-read","clipboard-write","camera","microphone","bluetooth","background-sync","gyroscope","accelerometer","magnetometer"];
-    for (const p of perms) {
+    const perms = [
+      ...(["persistent-storage", "captured-surface-control",
+      "window-management", "midi",
+      "microphone", "payment-handler", "camera",
+      "clipboard-write", "background-sync", "geolocation",
+      "local-fonts", "storage-access", "clipboard-read", "magnetometer",
+      "ambient-light-sensor", "notifications", "accelerometer",
+      "gyroscope", "screen-wake-lock"].map(pname => ({ name: pname }) )),
+
+      { name: "push", userVisibleOnly: true },
+      { name: "top-level-storage-access", requestedOrigin: window.location.origin },
+    ];
+    let logs = [];
+    for (const permCfg of perms) {
+      const strPermName = permCfg.name.split(/[\-_ ]/).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(" ");
+      let plog = " ⤷ ";
       try {
-        const q = await navigator.permissions.query({name:p});
-        logs.push(`${p}: ${q.state}`);
+        const q = await navigator.permissions.query(permCfg);
+        if (q) {
+          if (q.state === "granted") plog += "✅";
+          if (q.state === "prompt")  plog += "🗯️";
+          if (q.state === "denied")  plog += "❌";
+        } else {
+          plog += "❔"
+        }
+        
+        plog = plog + " " + strPermName + ": " + q.state.charAt(0).toUpperCase() + q.state.slice(1) + ";";
+        
       } catch (err) {
-        logs.push(`${p}: Failed with error ${err}`);
+        plog += "⚠️ " + strPermName + ": Not supported, since permissions.query() threw an error."
+        // plog += "\n";
+        // plog += err;
       }
+      logs.push(plog);
     }
-    log("🔐 Permissions dump: " + logs.join(", "));
+    log("🔐 Permissions dump:\n\n" + logs.join("\n\n"));
   } catch(e){ log("Permissions failed:", e); }
 
   try {
