@@ -7,3 +7,199 @@ TO DO - nibalan portfolio
 - Flickering BG https://codepen.io/nibalAn/pen/MWRrPeY
 - Add images ?
 - Style the whole layout
+
+
+
+
+
+
+
+
+# ???
+
+# Also Add:
+react-codejar
+datamaps
+ua-parser-js # says it detects bots, freemium
+react-router-hash-link
+(?   lorem-ipsum | faker | faker-br )
+wide-align
+superjson
+use-deep-compare-effect
+urijs # mutate url: .relativeTo .tld("com")  .query({...})
+react-reflex # resizeable panes
+react-typewriter-effect
+chardet # detects encoding from a buffer
+fuzzysort,
+graphemer # split graphemes not characters
+change-case
+react-dragula # drag and drop
+react-beautiful-dnd, # drag and drop
+mime-types,
+phone-number-to-timezone,
+react-device-detect, # <MobileOnly> <DesktopOnly>
+device-uuid, # md5 of several public infos of the browser
+dotenv,
+yamljs,
+papaparse, # csv
+konva & react-konva, # draw shapes on a canvas
+file-saver,
+react-select,
+react-datepicker,
+react-color,
+react-flow, # flowcharts
+slugify,
+react-use, # several hooks
+react-intersection-observer,
+react-helmet-async,
+simple-statistics, # provides .mean .median etc functions
+mathjs. # parse('8 * 5 / (16 + 9)')
+
+# Radix
+@radix-ui/react-dialog
+@radix-ui/react-popover
+@radix-ui/react-tooltip
+@radix-ui/react-dropdown-menu
+@radix-ui/react-tabs
+@radix-ui/react-label
+@radix-ui/react-slot
+...
+
+# Core
+react
+react-dom
+react-router-dom
+
+# State / Logic
+zustand
+react-hook-form
+zod
+ramda
+
+# Data / Requests
+axios
+@tanstack/react-query
+@tanstack/react-query-devtools
+
+# Utilities
+luxon
+lodash.debounce
+formatcoords
+clsx
+tailwind-merge
+class-variance-authority
+is-wsl
+
+# UI / Styling
+tailwindcss
+@tailwindcss/forms
+@tailwindcss/typography
+@tailwindcss/aspect-ratio
+@tailwindcss/container-queries
+shadcn-ui (installed per-component)
+
+# Charts / Data Viz
+d3
+
+# UX / Animation / Upload
+keen-slider
+@uploadthing/react
+imaskjs
+react-phone-number-input
+sonner
+react-hot-toast
+
+# Localization
+i18next
+i18next-browser-languagedetector
+i18next-http-backend
+react-i18next
+
+# Geographic / Misc
+world-countries
+
+# DevDependencies
+@vitejs/plugin-react
+vite
+typescript
+typescript-eslint
+@eslint/js
+eslint
+eslint-config-airbnb
+eslint-config-prettier
+eslint-config-react-app
+eslint-plugin-import
+eslint-plugin-prettier
+eslint-plugin-react-hooks
+eslint-plugin-react-refresh
+globals
+prettier
+prettier-plugin-tailwindcss
+postcss
+postcss-import
+autoprefixer
+tailwindcss
+@types/react
+@types/react-dom
+@types/node
+vitest
+@testing-library/react
+@testing-library/jest-dom
+
+
+
+
+npx shadcn-ui@latest add button input dialog select ...
+
+# Core primitives
+button
+input
+label
+textarea
+checkbox
+select
+switch
+dialog
+popover
+dropdown-menu
+tooltip
+
+# Layout & feedback
+card
+separator
+scroll-area
+tabs
+toast
+alert-dialog
+
+# Optional but handy
+command
+accordion
+badge
+skeleton
+
+
+
+
+
+
+
+
+
+
+
+cd nibal-art/svelte-vite-app-001/; 
+
+
+pnpm add prettier tailwind shadcn-svelte @sveltejs/adapter-cloudflare mdsvex @xyflow/svelte layerchart; \
+pnpm add prettier layercake @sveltejs/enhanced-img @poppanator/sveltekit-svg scrolly-video svelte-easy-crop ; \
+pnpm add prettier  @tanstack/svelte-virtual virtua @event-calendar/core @threlte/core; \
+pnpm add prettier @neoconfetti/svelte svelte-motion @tsparticles/svelte super-sitemap svead svelte-render-scan; \
+pnpm add prettier svelte-inspect-value @iconify/tailwind4 unplugin-icons vitest svelte5-router @tanstack/svelte-query; \
+pnpm add prettier sveltekit-superforms  codejar wide-align superjson fuzzysort change-case; \
+pnpm add prettier mime-types device-uuid papaparse slugify simple-statistics mathjs zustand zod ramda tailwind-merge; \
+pnpm add prettier class-variance-authority formatcoords @tailwindcss/forms @tailwindcss/typography; \
+pnpm add prettier @tailwindcss/aspect-ratio @tailwindcss/container-queries d3 sonner world-countries datamaps; \
+
+@tanstack/svelte-forms
+@unpic/svelte @tanstack/svelte-table
