@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N2BL - Devtools</title>
+    <link rel="stylesheet" href="/assets/nibol.css" />
+    <script src="https://kit.fontawesome.com/40f0ec6d01.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <section class="section" id="n2bl-index">
+      <div class="welcome-block">
+        <h2>
+          <a href="/N2BL/index.html" id="go-back">
+            <i class="fa-solid fa-turn-up" style="transform: scaleX(-1)"></i>
+          </a>
+          <i class="fa-solid fa-star-of-life"></i> DevTools
+        </h2>
+        <hr />
+        <div id="devtools-root" style="font-family: monospace; white-space: pre-wrap;">
+          <p>loading...</p>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      (function () {
+        const width = window.screen.width;
+        const height = window.screen.height;
+        const dpr = window.devicePixelRatio || 1;
+        const ua = navigator.userAgent;
+
+        const deviceProfile = {
+          title: "Custom Device",
+          type: "mobile", // change to "desktop" if needed
+          userAgent: ua,
+          width: width,
+          height: height,
+          deviceScaleFactor: dpr,
+          mobile: /Mobi|Android/i.test(ua),
+          touch: navigator.maxTouchPoints > 0,
+        };
+
+        document.getElementById("devtools-root").innerText = JSON.stringify({deviceProfile}, null, 2)
+      })();
+    </script>
+  </body>
+</html>
